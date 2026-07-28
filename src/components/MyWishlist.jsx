@@ -11,13 +11,29 @@ import {
   where
 } from "firebase/firestore";
 import { db } from "../firebase";
+import { normalizeUrl, toast } from "../ui";
+import WishCard from "./WishCard";
+import WishModal from "./WishModal";
 
 const ITEMS = collection(db, "items");
 
+function SkeletonCard() {
+  return (
+    <div className="rounded-blob shadow-card p-5 bg-white">
+      <div className="flex items-start gap-4">
+        <div className="w-12 h-12 rounded-2xl shimmer" />
+        <div className="flex-1 pt-1">
+          <div className="h-4 w-2/3 rounded-full shimmer mb-2.5" />
+          <div className="h-3 w-1/3 rounded-full shimmer" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function MyWishlist({ myId }) {
-  const [items, setItems] = useState([]);
-  const [editingId, setEditingId] = useState(null);
-  const [form, setForm] = useState({ title: "", url: "", note: "", price: "" });
+  const [items, setItems] = useState(null);
+  const [modal, setModal] = useState(null); // null | { item? }
 
   useEffect(() => {
     const q = query(ITEMS, where("owner", "==", myId));
@@ -29,22 +45,18 @@ export default function MyWishlist({ myId }) {
     });
   }, [myId]);
 
-  function resetForm() {
-    setForm({ title: "", url: "", note: "", price: "" });
-    setEditingId(null);
-  }
-
-  async function handleSubmit(e) {
-    e.preventDefault();
-    if (!form.title.trim()) return;
+  async function saveWish(form) {
     const payload = {
       title: form.title.trim(),
-      url: form.url.trim(),
+      url: normalizeUrl(form.url),
       note: form.note.trim(),
-      price: form.price === "" ? null : Number(form.price)
+      price: form.price === "" ? null : Number(form.price),
+      emoji: form.emoji,
+      priority: form.priority
     };
-    if (editingId) {
-      await updateDoc(doc(db, "items", editingId), payload);
+    if (modal?.item) {
+      await updateDoc(doc(db, "items", modal.item.id), payload);
+      toast("Deseo actualizado 💫");
     } else {
       await addDoc(ITEMS, {
         ...payload,
@@ -52,129 +64,68 @@ export default function MyWishlist({ myId }) {
         reserved: false,
         createdAt: serverTimestamp()
       });
+      toast("¡Deseo apuntado! ✨");
     }
-    resetForm();
-  }
-
-  function startEdit(item) {
-    setEditingId(item.id);
-    setForm({
-      title: item.title || "",
-      url: item.url || "",
-      note: item.note || "",
-      price: item.price ?? ""
-    });
+    setModal(null);
   }
 
   async function removeItem(id) {
     await deleteDoc(doc(db, "items", id));
-    if (editingId === id) resetForm();
+    toast("Deseo eliminado 🗑️");
   }
 
   return (
     <div className="max-w-2xl mx-auto">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white rounded-blob shadow-card p-6 mb-6 animate-popIn"
-      >
-        <h2 className="font-bold text-lg mb-4 text-primary">
-          {editingId ? "Editar deseo ✏️" : "Añadir un deseo ✨"}
-        </h2>
-        <input
-          className="w-full mb-3 rounded-bubble border-2 border-sky/60 px-4 py-2 focus:outline-none focus:border-secondary"
-          placeholder="¿Qué deseas?"
-          value={form.title}
-          onChange={(e) => setForm({ ...form, title: e.target.value })}
-        />
-        <input
-          className="w-full mb-3 rounded-bubble border-2 border-sky/60 px-4 py-2 focus:outline-none focus:border-secondary"
-          placeholder="Enlace (opcional)"
-          value={form.url}
-          onChange={(e) => setForm({ ...form, url: e.target.value })}
-        />
-        <div className="flex gap-3 mb-4">
-          <input
-            className="flex-1 rounded-bubble border-2 border-sky/60 px-4 py-2 focus:outline-none focus:border-secondary"
-            placeholder="Nota (opcional)"
-            value={form.note}
-            onChange={(e) => setForm({ ...form, note: e.target.value })}
-          />
-          <input
-            type="number"
-            className="w-28 rounded-bubble border-2 border-sky/60 px-4 py-2 focus:outline-none focus:border-secondary"
-            placeholder="Precio"
-            value={form.price}
-            onChange={(e) => setForm({ ...form, price: e.target.value })}
-          />
+      {items === null && (
+        <div className="flex flex-col gap-3">
+          <SkeletonCard />
+          <SkeletonCard />
         </div>
-        <div className="flex gap-3">
-          <button
-            type="submit"
-            className="flex-1 bg-primary text-white font-bold rounded-bubble py-3 shadow-soft active:translate-y-1 active:shadow-none transition-all"
-          >
-            {editingId ? "Guardar cambios" : "Añadir a mi lista"}
-          </button>
-          {editingId && (
-            <button
-              type="button"
-              onClick={resetForm}
-              className="px-5 rounded-bubble bg-appbg font-bold text-ink/60"
-            >
-              Cancelar
-            </button>
-          )}
-        </div>
-      </form>
+      )}
 
-      <div className="flex flex-col gap-3">
-        {items.length === 0 && (
-          <p className="text-center text-ink/50 py-8">
-            Tu lista está vacía. ¡Añade tu primer deseo! 🎁
+      {items?.length === 0 && (
+        <div className="text-center py-14 animate-popIn">
+          <div className="text-6xl mb-4 animate-wiggle inline-block">🎈</div>
+          <p className="font-extrabold text-xl text-ink mb-1">Tu lista está vacía</p>
+          <p className="text-ink/50 mb-6 max-w-xs mx-auto">
+            Pide sin miedo: apunta esa cosita que llevas tiempo mirando 👀
           </p>
-        )}
-        {items.map((item) => (
-          <div
-            key={item.id}
-            className="bg-white rounded-blob shadow-card p-5 animate-popIn flex justify-between items-start gap-4"
+          <button
+            onClick={() => setModal({})}
+            className="bg-primary text-white font-extrabold rounded-bubble px-6 py-3 shadow-soft active:translate-y-1 active:shadow-none transition-all"
           >
-            <div>
-              <p className="font-bold text-ink">{item.title}</p>
-              {item.note && <p className="text-sm text-ink/60">{item.note}</p>}
-              <div className="flex gap-3 mt-1 text-sm">
-                {item.price != null && (
-                  <span className="text-secondary font-semibold">{item.price} €</span>
-                )}
-                {item.url && (
-                  <a
-                    href={item.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-primary underline"
-                  >
-                    Ver enlace
-                  </a>
-                )}
-              </div>
-            </div>
-            <div className="flex gap-2 shrink-0">
-              <button
-                onClick={() => startEdit(item)}
-                className="w-9 h-9 rounded-full bg-banana/40 hover:bg-banana/60 transition-colors"
-                aria-label="Editar"
-              >
-                ✏️
-              </button>
-              <button
-                onClick={() => removeItem(item.id)}
-                className="w-9 h-9 rounded-full bg-peach/40 hover:bg-peach/60 transition-colors"
-                aria-label="Eliminar"
-              >
-                🗑️
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
+            ＋ Mi primer deseo
+          </button>
+        </div>
+      )}
+
+      {items?.length > 0 && (
+        <div className="flex flex-col gap-3">
+          {items.map((item) => (
+            <WishCard
+              key={item.id}
+              item={item}
+              mode="mine"
+              onEdit={() => setModal({ item })}
+              onDelete={() => removeItem(item.id)}
+            />
+          ))}
+        </div>
+      )}
+
+      {items?.length > 0 && (
+        <button
+          onClick={() => setModal({})}
+          aria-label="Añadir deseo"
+          className="fixed bottom-24 right-5 sm:bottom-10 sm:right-10 z-40 w-14 h-14 rounded-full bg-primary text-white text-3xl font-bold shadow-float active:scale-90 transition-transform flex items-center justify-center leading-none"
+        >
+          +
+        </button>
+      )}
+
+      {modal && (
+        <WishModal initial={modal.item} onSave={saveWish} onClose={() => setModal(null)} />
+      )}
     </div>
   );
 }

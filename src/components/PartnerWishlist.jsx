@@ -8,75 +8,95 @@ import {
   where
 } from "firebase/firestore";
 import { db } from "../firebase";
+import { burstHearts, toast } from "../ui";
+import WishCard from "./WishCard";
 
 const ITEMS = collection(db, "items");
 
 export default function PartnerWishlist({ partnerId, partnerName }) {
-  const [items, setItems] = useState([]);
+  const [items, setItems] = useState(null);
 
   useEffect(() => {
     const q = query(ITEMS, where("owner", "==", partnerId));
     return onSnapshot(q, (snap) => {
       const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-      list.sort((a, b) => (b.createdAt?.toMillis?.() ?? Infinity) - (a.createdAt?.toMillis?.() ?? Infinity));
+      // Lo que más ilusión le hace primero, luego lo más reciente
+      list.sort((a, b) => {
+        const p = (b.priority ?? 0) - (a.priority ?? 0);
+        if (p !== 0) return p;
+        return (b.createdAt?.toMillis?.() ?? Infinity) - (a.createdAt?.toMillis?.() ?? Infinity);
+      });
       setItems(list);
     });
   }, [partnerId]);
 
-  async function toggleReserved(item) {
+  async function toggleReserved(item, e) {
+    if (!item.reserved) {
+      burstHearts(e.clientX, e.clientY);
+      toast("¡Regalo pillado! 🤫");
+    } else {
+      toast("Reserva soltada 👌");
+    }
     await updateDoc(doc(db, "items", item.id), { reserved: !item.reserved });
   }
 
+  const reservedCount = items?.filter((i) => i.reserved).length ?? 0;
+
   return (
     <div className="max-w-2xl mx-auto">
-      <h2 className="font-bold text-lg mb-4 text-primary">
-        Lista de {partnerName} 🎁
-      </h2>
-      <div className="flex flex-col gap-3">
-        {items.length === 0 && (
-          <p className="text-center text-ink/50 py-8">
-            {partnerName} todavía no ha añadido deseos.
+      {items === null && (
+        <div className="rounded-blob shadow-card p-5 bg-white">
+          <div className="h-4 w-1/2 rounded-full shimmer" />
+        </div>
+      )}
+
+      {items?.length === 0 && (
+        <div className="text-center py-14 animate-popIn">
+          <div className="text-6xl mb-4 inline-block">🕵️</div>
+          <p className="font-extrabold text-xl text-ink mb-1">
+            {partnerName} aún no ha pedido nada
           </p>
-        )}
-        {items.map((item) => (
-          <div
-            key={item.id}
-            className={`rounded-blob shadow-card p-5 animate-popIn flex justify-between items-start gap-4 transition-colors ${
-              item.reserved ? "bg-success/40" : "bg-white"
-            }`}
-          >
-            <div>
-              <p className={`font-bold text-ink ${item.reserved ? "line-through opacity-60" : ""}`}>
-                {item.title}
-              </p>
-              {item.note && <p className="text-sm text-ink/60">{item.note}</p>}
-              <div className="flex gap-3 mt-1 text-sm">
-                {item.price != null && (
-                  <span className="text-secondary font-semibold">{item.price} €</span>
-                )}
-                {item.url && (
-                  <a
-                    href={item.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-primary underline"
-                  >
-                    Ver enlace
-                  </a>
-                )}
-              </div>
+          <p className="text-ink/50 max-w-xs mx-auto">
+            Dale un toque para que apunte sus caprichos 😏
+          </p>
+        </div>
+      )}
+
+      {items?.length > 0 && (
+        <>
+          <div className="bg-white/80 backdrop-blur rounded-bubble shadow-card px-5 py-4 mb-4 animate-popIn">
+            <div className="flex items-center justify-between text-sm font-bold text-ink/70 mb-2">
+              <span>
+                {items.length} {items.length === 1 ? "deseo" : "deseos"} 🎀
+              </span>
+              <span>
+                {reservedCount} {reservedCount === 1 ? "pillado" : "pillados"} 🤫
+              </span>
             </div>
-            <button
-              onClick={() => toggleReserved(item)}
-              className={`shrink-0 rounded-bubble px-4 py-2 font-bold text-sm shadow-soft active:translate-y-1 active:shadow-none transition-all ${
-                item.reserved ? "bg-ink/10 text-ink/60" : "bg-secondary text-white"
-              }`}
-            >
-              {item.reserved ? "Desreservar" : "Reservar"}
-            </button>
+            <div className="h-2.5 rounded-full bg-appbg overflow-hidden">
+              <div
+                className="h-full rounded-full bg-secondary transition-all duration-500"
+                style={{ width: `${(reservedCount / items.length) * 100}%` }}
+              />
+            </div>
           </div>
-        ))}
-      </div>
+
+          <div className="flex flex-col gap-3">
+            {items.map((item) => (
+              <WishCard
+                key={item.id}
+                item={item}
+                mode="partner"
+                onToggleReserved={(e) => toggleReserved(item, e)}
+              />
+            ))}
+          </div>
+
+          <p className="text-center text-xs text-ink/35 mt-6 px-6">
+            Tranqui: {partnerName} no ve qué está reservado — la sorpresa está a salvo 🤐
+          </p>
+        </>
+      )}
     </div>
   );
 }

@@ -30,10 +30,42 @@ export default {
           "0%": { opacity: "0", transform: "translateY(20px) scale(0.96)" },
           "65%": { opacity: "1", transform: "translateY(-6px) scale(1.02)" },
           "100%": { opacity: "1", transform: "translateY(0) scale(1)" }
+        },
+        slideUp: {
+          "0%": { opacity: "0", transform: "translateY(100%)" },
+          "100%": { opacity: "1", transform: "translateY(0)" }
+        },
+        fadeIn: {
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" }
+        },
+        floatSlow: {
+          "0%, 100%": { transform: "translate(0, 0) scale(1)" },
+          "50%": { transform: "translate(24px, -32px) scale(1.08)" }
+        },
+        floatSlower: {
+          "0%, 100%": { transform: "translate(0, 0) scale(1)" },
+          "50%": { transform: "translate(-32px, 28px) scale(0.94)" }
+        },
+        wiggle: {
+          "0%, 100%": { transform: "rotate(-4deg)" },
+          "50%": { transform: "rotate(4deg)" }
+        },
+        beat: {
+          "0%, 100%": { transform: "scale(1)" },
+          "25%": { transform: "scale(1.18)" },
+          "45%": { transform: "scale(1)" },
+          "60%": { transform: "scale(1.12)" }
         }
       },
       animation: {
-        popIn: "popIn 460ms cubic-bezier(0.22, 1, 0.36, 1) both"
+        popIn: "popIn 460ms cubic-bezier(0.22, 1, 0.36, 1) both",
+        slideUp: "slideUp 380ms cubic-bezier(0.22, 1, 0.36, 1) both",
+        fadeIn: "fadeIn 250ms ease-out both",
+        floatSlow: "floatSlow 14s ease-in-out infinite",
+        floatSlower: "floatSlower 18s ease-in-out infinite",
+        wiggle: "wiggle 2.4s ease-in-out infinite",
+        beat: "beat 1.6s ease-in-out infinite"
       }
     }
   },
