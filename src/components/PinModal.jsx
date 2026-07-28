@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { hashPin } from "../ui";
 
 // mode "create": pide PIN nuevo y confirmación, llama onSuccess(hash)
@@ -73,7 +74,7 @@ export default function PinModal({ mode, personId, personName, expectedHash, onS
         ? `Crea tu PIN, ${personName} 🔐`
         : "Repítelo para confirmar ✌️";
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-ink/40 backdrop-blur-sm animate-fadeIn"
       onMouseDown={(e) => {
@@ -131,6 +132,7 @@ export default function PinModal({ mode, personId, personName, expectedHash, onS
           {mode === "verify" ? "Entrar" : step === 1 ? "Continuar" : "Guardar PIN"}
         </button>
       </form>
-    </div>
+    </div>,
+    document.body
   );
 }

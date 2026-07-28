@@ -9,7 +9,7 @@ import {
 } from "firebase/firestore";
 import { db } from "../firebase";
 import { burstHearts, fmtPrice, toast } from "../ui";
-import FilterPills from "./FilterPills";
+import ListControls, { matchesPrice, sortItems } from "./ListControls";
 import { SkeletonCard } from "./MyWishlist";
 import WishCard from "./WishCard";
 
@@ -18,18 +18,13 @@ const ITEMS = collection(db, "items");
 export default function PartnerWishlist({ partnerId, partnerName }) {
   const [items, setItems] = useState(null);
   const [filter, setFilter] = useState("all");
+  const [price, setPrice] = useState("any");
+  const [sort, setSort] = useState("hearts");
 
   useEffect(() => {
     const q = query(ITEMS, where("owner", "==", partnerId));
     return onSnapshot(q, (snap) => {
-      const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-      // Lo que más ilusión le hace primero, luego lo más reciente
-      list.sort((a, b) => {
-        const p = (b.priority ?? 0) - (a.priority ?? 0);
-        if (p !== 0) return p;
-        return (b.createdAt?.toMillis?.() ?? Infinity) - (a.createdAt?.toMillis?.() ?? Infinity);
-      });
-      setItems(list);
+      setItems(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
     });
   }, [partnerId]);
 
@@ -44,7 +39,12 @@ export default function PartnerWishlist({ partnerId, partnerName }) {
   }
 
   const reservedCount = items?.filter((i) => i.reserved).length ?? 0;
-  const visible = items?.filter((i) => filter === "all" || i.category === filter) ?? null;
+  const visible = items
+    ? sortItems(
+        items.filter((i) => (filter === "all" || i.category === filter) && matchesPrice(i, price)),
+        sort
+      )
+    : null;
   const totalPrice = visible?.reduce((sum, i) => sum + (i.price || 0), 0) ?? 0;
 
   return (
@@ -73,7 +73,14 @@ export default function PartnerWishlist({ partnerId, partnerName }) {
 
       {items?.length > 0 && (
         <>
-          <FilterPills value={filter} onChange={setFilter} />
+          <ListControls
+            filter={filter}
+            onFilter={setFilter}
+            price={price}
+            onPrice={setPrice}
+            sort={sort}
+            onSort={setSort}
+          />
 
           <div className="bg-white/80 backdrop-blur rounded-bubble shadow-card px-5 py-4 mb-4 animate-popIn">
             <div className="flex items-center justify-between gap-2 text-sm font-bold text-ink/70 mb-2">

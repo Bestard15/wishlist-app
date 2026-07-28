@@ -1,4 +1,9 @@
-export const WISH_EMOJIS = ["🎁", "📚", "👗", "👟", "🎮", "💻", "🧴", "💍", "🧸", "✈️", "🍫", "🎟️"];
+export const WISH_EMOJIS = [
+  "🎁", "📚", "👗", "👟", "🎮", "💻", "🧴", "💍",
+  "🧸", "✈️", "🍫", "🎟️", "🎧", "⌚", "📱", "💄",
+  "👜", "🕶️", "🌸", "🎸", "🎨", "☕", "🍰", "🚲",
+  "🏀", "⚽", "🏕️", "🎬", "🪴", "🐾", "🧣", "🛍️"
+];
 
 export function toast(message) {
   window.dispatchEvent(new CustomEvent("app:toast", { detail: { message } }));

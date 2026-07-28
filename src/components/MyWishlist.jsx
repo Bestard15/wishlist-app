@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   addDoc,
   collection,
@@ -12,7 +13,7 @@ import {
 } from "firebase/firestore";
 import { db } from "../firebase";
 import { fmtPrice, normalizeUrl, toast } from "../ui";
-import FilterPills from "./FilterPills";
+import ListControls, { matchesPrice, sortItems } from "./ListControls";
 import WishCard from "./WishCard";
 import WishModal from "./WishModal";
 
@@ -36,6 +37,8 @@ export default function MyWishlist({ myId }) {
   const [items, setItems] = useState(null);
   const [modal, setModal] = useState(null); // null | { item? }
   const [filter, setFilter] = useState("all");
+  const [price, setPrice] = useState("any");
+  const [sort, setSort] = useState("recent");
 
   useEffect(() => {
     const q = query(ITEMS, where("owner", "==", myId));
@@ -77,7 +80,12 @@ export default function MyWishlist({ myId }) {
     toast("Deseo eliminado 🗑️");
   }
 
-  const visible = items?.filter((i) => filter === "all" || i.category === filter) ?? null;
+  const visible = items
+    ? sortItems(
+        items.filter((i) => (filter === "all" || i.category === filter) && matchesPrice(i, price)),
+        sort
+      )
+    : null;
   const totalPrice = visible?.reduce((sum, i) => sum + (i.price || 0), 0) ?? 0;
 
   return (
@@ -91,7 +99,14 @@ export default function MyWishlist({ myId }) {
 
       {items?.length > 0 && (
         <>
-          <FilterPills value={filter} onChange={setFilter} />
+          <ListControls
+            filter={filter}
+            onFilter={setFilter}
+            price={price}
+            onPrice={setPrice}
+            sort={sort}
+            onSort={setSort}
+          />
           <p className="text-center text-xs font-bold text-ink/55 mb-4">
             {visible.length} {visible.length === 1 ? "deseo" : "deseos"}
             {totalPrice > 0 && <> · ~{fmtPrice(totalPrice)} €</>}
@@ -136,15 +151,17 @@ export default function MyWishlist({ myId }) {
         </div>
       )}
 
-      {items?.length > 0 && (
-        <button
-          onClick={() => setModal({})}
-          aria-label="Añadir deseo"
-          className="fixed bottom-24 right-5 sm:bottom-10 sm:right-10 z-40 w-14 h-14 rounded-full bg-primary text-white text-3xl font-bold shadow-[0_16px_40px_rgba(255,107,107,0.4)] hover:scale-110 active:scale-90 transition-transform flex items-center justify-center leading-none animate-popIn"
-        >
-          +
-        </button>
-      )}
+      {items?.length > 0 &&
+        createPortal(
+          <button
+            onClick={() => setModal({})}
+            aria-label="Añadir deseo"
+            className="fixed bottom-24 right-5 sm:bottom-10 sm:right-10 z-40 w-14 h-14 rounded-full bg-primary text-white text-3xl font-bold shadow-[0_16px_40px_rgba(255,107,107,0.4)] hover:scale-110 active:scale-90 transition-transform flex items-center justify-center leading-none animate-popIn"
+          >
+            +
+          </button>,
+          document.body
+        )}
 
       {modal && (
         <WishModal initial={modal.item} onSave={saveWish} onClose={() => setModal(null)} />

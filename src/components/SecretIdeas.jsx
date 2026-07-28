@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   addDoc,
   collection,
@@ -118,15 +119,17 @@ export default function SecretIdeas({ myId, partnerName }) {
         </div>
       )}
 
-      {ideas?.length > 0 && (
-        <button
-          onClick={() => setModal({})}
-          aria-label="Añadir idea"
-          className="fixed bottom-24 right-5 sm:bottom-10 sm:right-10 z-40 w-14 h-14 rounded-full bg-primary text-white text-3xl font-bold shadow-[0_16px_40px_rgba(255,107,107,0.4)] hover:scale-110 active:scale-90 transition-transform flex items-center justify-center leading-none animate-popIn"
-        >
-          +
-        </button>
-      )}
+      {ideas?.length > 0 &&
+        createPortal(
+          <button
+            onClick={() => setModal({})}
+            aria-label="Añadir idea"
+            className="fixed bottom-24 right-5 sm:bottom-10 sm:right-10 z-40 w-14 h-14 rounded-full bg-primary text-white text-3xl font-bold shadow-[0_16px_40px_rgba(255,107,107,0.4)] hover:scale-110 active:scale-90 transition-transform flex items-center justify-center leading-none animate-popIn"
+          >
+            +
+          </button>,
+          document.body
+        )}
 
       {modal && (
         <WishModal

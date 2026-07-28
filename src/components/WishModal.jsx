@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { WISH_EMOJIS } from "../ui";
 
 export default function WishModal({ initial, onSave, onClose, kind = "wish" }) {
@@ -30,7 +31,8 @@ export default function WishModal({ initial, onSave, onClose, kind = "wish" }) {
     await onSave(form);
   }
 
-  return (
+  // Portal: un ancestro con transform (fadeSlide de <main>) rompería position:fixed
+  return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-ink/40 backdrop-blur-sm animate-fadeIn"
       onMouseDown={(e) => {
@@ -189,6 +191,7 @@ export default function WishModal({ initial, onSave, onClose, kind = "wish" }) {
                 : "Pedir deseo 🌠"}
         </button>
       </form>
-    </div>
+    </div>,
+    document.body
   );
 }

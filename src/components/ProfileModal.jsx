@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { doc, setDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import { toast } from "../ui";
@@ -133,7 +134,7 @@ export default function ProfileModal({ couple, whoAmI, onClose }) {
     onClose();
   }
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-ink/40 backdrop-blur-sm animate-fadeIn"
       onMouseDown={(e) => {
@@ -212,6 +213,7 @@ export default function ProfileModal({ couple, whoAmI, onClose }) {
           }}
         />
       )}
-    </div>
+    </div>,
+    document.body
   );
 }
