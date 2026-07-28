@@ -28,6 +28,12 @@ export function normalizeUrl(raw) {
   return /^https?:\/\//i.test(value) ? value : `https://${value}`;
 }
 
+export async function hashPin(personId, pin) {
+  const data = new TextEncoder().encode(`wishlist:${personId}:${pin}`);
+  const buf = await crypto.subtle.digest("SHA-256", data);
+  return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
 export function fmtPrice(n) {
   return n.toLocaleString("es-ES", { maximumFractionDigits: 2 });
 }

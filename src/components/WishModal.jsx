@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { WISH_EMOJIS } from "../ui";
 
-export default function WishModal({ initial, onSave, onClose }) {
+export default function WishModal({ initial, onSave, onClose, kind = "wish" }) {
   const [form, setForm] = useState({
     title: initial?.title || "",
     url: initial?.url || "",
@@ -41,21 +41,28 @@ export default function WishModal({ initial, onSave, onClose }) {
         onSubmit={handleSubmit}
         className="w-full sm:max-w-md bg-white rounded-t-blob sm:rounded-blob shadow-float p-6 sm:p-8 animate-slideUp sm:animate-popIn max-h-[92dvh] overflow-y-auto"
       >
+        <div aria-hidden className="sm:hidden mx-auto -mt-1 mb-4 h-1.5 w-12 rounded-full bg-ink/15" />
         <div className="flex items-center justify-between mb-5">
           <h2 className="font-extrabold text-xl text-ink">
-            {initial ? "Editar deseo ✏️" : "Nuevo deseo ✨"}
+            {kind === "idea"
+              ? initial
+                ? "Editar idea ✏️"
+                : "Idea secreta 💡"
+              : initial
+                ? "Editar deseo ✏️"
+                : "Nuevo deseo ✨"}
           </h2>
           <button
             type="button"
             onClick={onClose}
             aria-label="Cerrar"
-            className="w-9 h-9 rounded-full bg-appbg text-ink/50 font-bold hover:bg-ink/10 transition-colors"
+            className="w-11 h-11 rounded-full bg-appbg text-ink/50 font-bold hover:bg-ink/10 transition-colors"
           >
             ✕
           </button>
         </div>
 
-        <label className="block text-xs font-bold uppercase tracking-wide text-ink/40 mb-1.5">
+        <label className="block text-xs font-bold uppercase tracking-wide text-ink/55 mb-1.5">
           ¿Qué es?
         </label>
         <input
@@ -66,7 +73,7 @@ export default function WishModal({ initial, onSave, onClose }) {
           onChange={(e) => setForm({ ...form, title: e.target.value })}
         />
 
-        <label className="block text-xs font-bold uppercase tracking-wide text-ink/40 mb-1.5">
+        <label className="block text-xs font-bold uppercase tracking-wide text-ink/55 mb-1.5">
           Emoji
         </label>
         <div className="flex flex-wrap gap-2 mb-4">
@@ -75,7 +82,7 @@ export default function WishModal({ initial, onSave, onClose }) {
               key={em}
               type="button"
               onClick={() => setForm({ ...form, emoji: em })}
-              className={`w-10 h-10 rounded-full text-lg transition-all ${
+              className={`w-11 h-11 rounded-full text-lg transition-all ${
                 form.emoji === em
                   ? "bg-secondary/25 ring-2 ring-secondary scale-110"
                   : "bg-appbg hover:bg-sky/40"
@@ -86,7 +93,7 @@ export default function WishModal({ initial, onSave, onClose }) {
           ))}
         </div>
 
-        <label className="block text-xs font-bold uppercase tracking-wide text-ink/40 mb-1.5">
+        <label className="block text-xs font-bold uppercase tracking-wide text-ink/55 mb-1.5">
           ¿Necesidad o capricho?
         </label>
         <div className="flex gap-2 mb-4">
@@ -109,8 +116,8 @@ export default function WishModal({ initial, onSave, onClose }) {
           ))}
         </div>
 
-        <label className="block text-xs font-bold uppercase tracking-wide text-ink/40 mb-1.5">
-          ¿Cuánta ilusión te hace?
+        <label className="block text-xs font-bold uppercase tracking-wide text-ink/55 mb-1.5">
+          {kind === "idea" ? "¿Cuánto le gustará?" : "¿Cuánta ilusión te hace?"}
         </label>
         <div className="flex gap-2 mb-4">
           {[1, 2, 3].map((n) => (
@@ -131,18 +138,18 @@ export default function WishModal({ initial, onSave, onClose }) {
 
         <div className="grid grid-cols-[1fr_7rem] gap-3 mb-4">
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wide text-ink/40 mb-1.5">
+            <label className="block text-xs font-bold uppercase tracking-wide text-ink/55 mb-1.5">
               Enlace <span className="normal-case font-semibold">(opcional)</span>
             </label>
             <input
-              className="w-full rounded-bubble bg-appbg border-2 border-transparent px-4 py-3 text-sm focus:outline-none focus:border-secondary focus:bg-white transition-colors"
+              className="w-full rounded-bubble bg-appbg border-2 border-transparent px-4 py-3 text-base focus:outline-none focus:border-secondary focus:bg-white transition-colors"
               placeholder="amazon.es/..."
               value={form.url}
               onChange={(e) => setForm({ ...form, url: e.target.value })}
             />
           </div>
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wide text-ink/40 mb-1.5">
+            <label className="block text-xs font-bold uppercase tracking-wide text-ink/55 mb-1.5">
               Precio €
             </label>
             <input
@@ -150,7 +157,7 @@ export default function WishModal({ initial, onSave, onClose }) {
               inputMode="decimal"
               min="0"
               step="0.01"
-              className="w-full rounded-bubble bg-appbg border-2 border-transparent px-4 py-3 text-sm focus:outline-none focus:border-secondary focus:bg-white transition-colors"
+              className="w-full rounded-bubble bg-appbg border-2 border-transparent px-4 py-3 text-base focus:outline-none focus:border-secondary focus:bg-white transition-colors"
               placeholder="~"
               value={form.price}
               onChange={(e) => setForm({ ...form, price: e.target.value })}
@@ -158,11 +165,11 @@ export default function WishModal({ initial, onSave, onClose }) {
           </div>
         </div>
 
-        <label className="block text-xs font-bold uppercase tracking-wide text-ink/40 mb-1.5">
+        <label className="block text-xs font-bold uppercase tracking-wide text-ink/55 mb-1.5">
           Nota <span className="normal-case font-semibold">(talla, color, indirecta...)</span>
         </label>
         <input
-          className="w-full mb-6 rounded-bubble bg-appbg border-2 border-transparent px-4 py-3 text-sm focus:outline-none focus:border-secondary focus:bg-white transition-colors"
+          className="w-full mb-6 rounded-bubble bg-appbg border-2 border-transparent px-4 py-3 text-base focus:outline-none focus:border-secondary focus:bg-white transition-colors"
           placeholder="Talla M, el azul mejor 😌"
           value={form.note}
           onChange={(e) => setForm({ ...form, note: e.target.value })}
@@ -173,7 +180,13 @@ export default function WishModal({ initial, onSave, onClose }) {
           disabled={saving || !form.title.trim()}
           className="w-full bg-primary text-white font-extrabold text-lg rounded-bubble py-3.5 shadow-soft active:translate-y-1 active:shadow-none transition-all disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          {saving ? "Guardando..." : initial ? "Guardar cambios" : "Pedir deseo 🌠"}
+          {saving
+            ? "Guardando..."
+            : initial
+              ? "Guardar cambios"
+              : kind === "idea"
+                ? "Guardar idea 🤫"
+                : "Pedir deseo 🌠"}
         </button>
       </form>
     </div>

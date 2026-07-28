@@ -11,10 +11,10 @@ export default function FilterPills({ value, onChange }) {
         <button
           key={opt.key}
           onClick={() => onChange(opt.key)}
-          className={`rounded-full px-4 py-1.5 text-xs font-extrabold transition-all ${
+          className={`rounded-full px-5 py-2.5 text-sm min-h-[44px] font-extrabold transition-all active:scale-95 ${
             value === opt.key
               ? "bg-ink text-white shadow-soft scale-105"
-              : "bg-white/70 text-ink/50 hover:bg-white"
+              : "bg-white/80 text-ink/60 hover:bg-white"
           }`}
         >
           {opt.label}

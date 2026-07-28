@@ -21,7 +21,7 @@ export default {
         blob: "2rem"
       },
       boxShadow: {
-        soft: "0 8px 0 rgba(45, 52, 54, 0.12)",
+        soft: "0 4px 0 rgba(45, 52, 54, 0.16)",
         card: "0 10px 24px rgba(45, 52, 54, 0.12)",
         float: "0 16px 40px rgba(78, 205, 196, 0.22)"
       },
@@ -56,6 +56,17 @@ export default {
           "25%": { transform: "scale(1.18)" },
           "45%": { transform: "scale(1)" },
           "60%": { transform: "scale(1.12)" }
+        },
+        shake: {
+          "0%, 100%": { transform: "translateX(0)" },
+          "20%": { transform: "translateX(-10px)" },
+          "40%": { transform: "translateX(10px)" },
+          "60%": { transform: "translateX(-7px)" },
+          "80%": { transform: "translateX(7px)" }
+        },
+        fadeSlide: {
+          "0%": { opacity: "0", transform: "translateY(12px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" }
         }
       },
       animation: {
@@ -65,7 +76,9 @@ export default {
         floatSlow: "floatSlow 14s ease-in-out infinite",
         floatSlower: "floatSlower 18s ease-in-out infinite",
         wiggle: "wiggle 2.4s ease-in-out infinite",
-        beat: "beat 1.6s ease-in-out infinite"
+        beat: "beat 1.6s ease-in-out infinite",
+        shake: "shake 420ms ease-in-out",
+        fadeSlide: "fadeSlide 320ms cubic-bezier(0.22, 1, 0.36, 1) both"
       }
     }
   },

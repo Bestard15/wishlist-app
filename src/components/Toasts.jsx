@@ -20,7 +20,7 @@ export default function Toasts() {
   }, []);
 
   return (
-    <div className="fixed top-4 inset-x-0 z-[100] flex flex-col items-center gap-2 pointer-events-none px-4">
+    <div className="fixed top-[max(1rem,env(safe-area-inset-top))] inset-x-0 z-[100] flex flex-col items-center gap-2 pointer-events-none px-4">
       {toasts.map((t) => (
         <div
           key={t.id}

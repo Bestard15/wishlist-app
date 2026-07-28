@@ -18,7 +18,7 @@ import WishModal from "./WishModal";
 
 const ITEMS = collection(db, "items");
 
-function SkeletonCard() {
+export function SkeletonCard() {
   return (
     <div className="rounded-blob shadow-card p-5 bg-white">
       <div className="flex items-start gap-4">
@@ -92,7 +92,7 @@ export default function MyWishlist({ myId }) {
       {items?.length > 0 && (
         <>
           <FilterPills value={filter} onChange={setFilter} />
-          <p className="text-center text-xs font-bold text-ink/40 mb-4">
+          <p className="text-center text-xs font-bold text-ink/55 mb-4">
             {visible.length} {visible.length === 1 ? "deseo" : "deseos"}
             {totalPrice > 0 && <> · ~{fmtPrice(totalPrice)} €</>}
           </p>
@@ -103,7 +103,7 @@ export default function MyWishlist({ myId }) {
         <div className="text-center py-14 animate-popIn">
           <div className="text-6xl mb-4 animate-wiggle inline-block">🎈</div>
           <p className="font-extrabold text-xl text-ink mb-1">Tu lista está vacía</p>
-          <p className="text-ink/50 mb-6 max-w-xs mx-auto">
+          <p className="text-ink/60 mb-6 max-w-xs mx-auto">
             Pide sin miedo: apunta esa cosita que llevas tiempo mirando 👀
           </p>
           <button
@@ -116,18 +116,19 @@ export default function MyWishlist({ myId }) {
       )}
 
       {items?.length > 0 && visible.length === 0 && (
-        <p className="text-center text-ink/40 font-semibold py-10 animate-popIn">
+        <p className="text-center text-ink/55 font-semibold py-10 animate-popIn">
           Nada por aquí con este filtro 🤷
         </p>
       )}
 
       {visible?.length > 0 && (
         <div className="flex flex-col gap-3">
-          {visible.map((item) => (
+          {visible.map((item, i) => (
             <WishCard
               key={item.id}
               item={item}
               mode="mine"
+              style={{ animationDelay: `${Math.min(i, 8) * 45}ms` }}
               onEdit={() => setModal({ item })}
               onDelete={() => removeItem(item.id)}
             />
@@ -139,7 +140,7 @@ export default function MyWishlist({ myId }) {
         <button
           onClick={() => setModal({})}
           aria-label="Añadir deseo"
-          className="fixed bottom-24 right-5 sm:bottom-10 sm:right-10 z-40 w-14 h-14 rounded-full bg-primary text-white text-3xl font-bold shadow-float active:scale-90 transition-transform flex items-center justify-center leading-none"
+          className="fixed bottom-24 right-5 sm:bottom-10 sm:right-10 z-40 w-14 h-14 rounded-full bg-primary text-white text-3xl font-bold shadow-[0_16px_40px_rgba(255,107,107,0.4)] hover:scale-110 active:scale-90 transition-transform flex items-center justify-center leading-none animate-popIn"
         >
           +
         </button>

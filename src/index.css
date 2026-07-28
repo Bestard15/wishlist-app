@@ -2,9 +2,43 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+  scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent;
+}
+
 body {
   background-color: #f7f9fc;
   overscroll-behavior-y: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: #ffe66d;
+  color: #2d3436;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(45, 52, 54, 0.2) transparent;
+}
+
+/* Foco visible al navegar con teclado */
+:is(button, a, [role="button"]):focus-visible {
+  outline: 3px solid #4ecdc4;
+  outline-offset: 2px;
+}
+
+/* Accesibilidad: sin animaciones para quien las desactiva en su sistema */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* Tarjetas de carga */

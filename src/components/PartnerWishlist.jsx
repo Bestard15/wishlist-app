@@ -10,6 +10,7 @@ import {
 import { db } from "../firebase";
 import { burstHearts, fmtPrice, toast } from "../ui";
 import FilterPills from "./FilterPills";
+import { SkeletonCard } from "./MyWishlist";
 import WishCard from "./WishCard";
 
 const ITEMS = collection(db, "items");
@@ -49,8 +50,12 @@ export default function PartnerWishlist({ partnerId, partnerName }) {
   return (
     <div className="max-w-2xl mx-auto">
       {items === null && (
-        <div className="rounded-blob shadow-card p-5 bg-white">
-          <div className="h-4 w-1/2 rounded-full shimmer" />
+        <div className="flex flex-col gap-3">
+          <div className="rounded-bubble shadow-card p-5 bg-white">
+            <div className="h-2.5 rounded-full shimmer" />
+          </div>
+          <SkeletonCard />
+          <SkeletonCard />
         </div>
       )}
 
@@ -76,7 +81,7 @@ export default function PartnerWishlist({ partnerId, partnerName }) {
                 {visible.length} {visible.length === 1 ? "deseo" : "deseos"} 🎀
               </span>
               {totalPrice > 0 && (
-                <span className="text-ink/45 text-xs">~{fmtPrice(totalPrice)} €</span>
+                <span className="text-ink/55 text-xs">~{fmtPrice(totalPrice)} €</span>
               )}
               <span>
                 {reservedCount} {reservedCount === 1 ? "pillado" : "pillados"} 🤫
@@ -84,30 +89,31 @@ export default function PartnerWishlist({ partnerId, partnerName }) {
             </div>
             <div className="h-2.5 rounded-full bg-appbg overflow-hidden">
               <div
-                className="h-full rounded-full bg-secondary transition-all duration-500"
+                className="h-full rounded-full bg-gradient-to-r from-secondary to-success transition-all duration-500"
                 style={{ width: `${(reservedCount / items.length) * 100}%` }}
               />
             </div>
           </div>
 
           {visible.length === 0 && (
-            <p className="text-center text-ink/40 font-semibold py-10 animate-popIn">
+            <p className="text-center text-ink/55 font-semibold py-10 animate-popIn">
               Nada por aquí con este filtro 🤷
             </p>
           )}
 
           <div className="flex flex-col gap-3">
-            {visible.map((item) => (
+            {visible.map((item, i) => (
               <WishCard
                 key={item.id}
                 item={item}
                 mode="partner"
+                style={{ animationDelay: `${Math.min(i, 8) * 45}ms` }}
                 onToggleReserved={(e) => toggleReserved(item, e)}
               />
             ))}
           </div>
 
-          <p className="text-center text-xs text-ink/35 mt-6 px-6">
+          <p className="text-center text-xs text-ink/55 mt-6 px-6">
             Tranqui: {partnerName} no ve qué está reservado — la sorpresa está a salvo 🤐
           </p>
         </>

@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { doc, onSnapshot, setDoc } from "firebase/firestore";
 import { db } from "../firebase";
+import { toast } from "../ui";
 import Avatar from "./Avatar";
+import PinModal from "./PinModal";
 
 const COUPLE_DOC = doc(db, "meta", "couple");
 
@@ -23,6 +25,7 @@ export default function Onboarding({ onReady }) {
   const [nameA, setNameA] = useState("");
   const [nameB, setNameB] = useState("");
   const [saving, setSaving] = useState(false);
+  const [claiming, setClaiming] = useState(null); // personId pendiente de PIN
 
   useEffect(() => {
     return onSnapshot(COUPLE_DOC, (snap) => {
@@ -69,7 +72,7 @@ export default function Onboarding({ onReady }) {
           <p className="text-sm text-ink/55 mb-6">
             Primera vez por aquí. Decidme vuestros nombres y a pedir deseos.
           </p>
-          <label className="block text-xs font-bold uppercase tracking-wide text-ink/40 mb-1.5">
+          <label className="block text-xs font-bold uppercase tracking-wide text-ink/55 mb-1.5">
             Persona 1
           </label>
           <input
@@ -78,7 +81,7 @@ export default function Onboarding({ onReady }) {
             onChange={(e) => setNameA(e.target.value)}
             placeholder="Tu nombre"
           />
-          <label className="block text-xs font-bold uppercase tracking-wide text-ink/40 mb-1.5">
+          <label className="block text-xs font-bold uppercase tracking-wide text-ink/55 mb-1.5">
             Persona 2
           </label>
           <input
@@ -111,10 +114,7 @@ export default function Onboarding({ onReady }) {
           {["p1", "p2"].map((id, i) => (
             <button
               key={id}
-              onClick={() => {
-                localStorage.setItem("whoAmI", id);
-                onReady(couple, id);
-              }}
+              onClick={() => setClaiming(id)}
               className={`group flex items-center gap-3 rounded-bubble p-3 pr-5 transition-all hover:scale-[1.02] active:scale-95 ${
                 i === 0 ? "bg-peach/50 hover:bg-peach/70" : "bg-sky/50 hover:bg-sky/70"
               }`}
@@ -123,13 +123,31 @@ export default function Onboarding({ onReady }) {
               <span className="font-extrabold text-ink flex-1 text-left truncate">
                 {couple[id]}
               </span>
-              <span className="text-ink/40 font-bold text-sm group-hover:translate-x-1 transition-transform">
-                soy yo →
+              <span className="text-ink/60 font-bold text-sm group-hover:translate-x-1 transition-transform">
+                {couple[`${id}Pin`] ? "soy yo 🔐" : "soy yo →"}
               </span>
             </button>
           ))}
         </div>
       </div>
+
+      {claiming && (
+        <PinModal
+          mode={couple[`${claiming}Pin`] ? "verify" : "create"}
+          personId={claiming}
+          personName={couple[claiming]}
+          expectedHash={couple[`${claiming}Pin`]}
+          onClose={() => setClaiming(null)}
+          onSuccess={async (newHash) => {
+            if (newHash) {
+              await setDoc(COUPLE_DOC, { [`${claiming}Pin`]: newHash }, { merge: true });
+              toast("PIN creado 🔐");
+            }
+            localStorage.setItem("whoAmI", claiming);
+            onReady(couple, claiming);
+          }}
+        />
+      )}
     </Backdrop>
   );
 }

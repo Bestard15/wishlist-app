@@ -3,6 +3,7 @@ import { doc, setDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import { toast } from "../ui";
 import Avatar from "./Avatar";
+import PinModal from "./PinModal";
 
 const COUPLE_DOC = doc(db, "meta", "couple");
 const AVATAR_EMOJIS = ["🦊", "🐻", "🐰", "🐱", "🐶", "🦁", "🐼", "🐨", "🦄", "🐸", "🐯", "🐹"];
@@ -49,7 +50,7 @@ function ProfileEditor({ personId, profile, onChange }) {
       <div className="flex items-center gap-4 mb-3">
         <Avatar personId={personId} name={profile.name} avatar={profile.avatar} size="lg" />
         <div className="flex-1 min-w-0">
-          <label className="block text-xs font-bold uppercase tracking-wide text-ink/40 mb-1.5">
+          <label className="block text-xs font-bold uppercase tracking-wide text-ink/55 mb-1.5">
             Nombre o apodo
           </label>
           <input
@@ -67,7 +68,7 @@ function ProfileEditor({ personId, profile, onChange }) {
             key={em}
             type="button"
             onClick={() => onChange({ ...profile, avatar: em })}
-            className={`w-9 h-9 rounded-full text-base transition-all ${
+            className={`w-11 h-11 rounded-full text-lg transition-all ${
               profile.avatar === em
                 ? "bg-secondary/25 ring-2 ring-secondary scale-110"
                 : "bg-white hover:bg-sky/40"
@@ -97,12 +98,14 @@ function ProfileEditor({ personId, profile, onChange }) {
   );
 }
 
-export default function ProfileModal({ couple, onClose }) {
+export default function ProfileModal({ couple, whoAmI, onClose }) {
   const [profiles, setProfiles] = useState({
     p1: { name: couple.p1, avatar: couple.p1Avatar || "" },
     p2: { name: couple.p2, avatar: couple.p2Avatar || "" }
   });
   const [saving, setSaving] = useState(false);
+  const [pinStep, setPinStep] = useState(null); // null | "verify" | "create"
+  const myPinHash = couple[`${whoAmI}Pin`];
 
   useEffect(() => {
     function onKey(e) {
@@ -141,13 +144,14 @@ export default function ProfileModal({ couple, onClose }) {
         onSubmit={handleSave}
         className="w-full sm:max-w-md bg-white rounded-t-blob sm:rounded-blob shadow-float p-6 sm:p-8 animate-slideUp sm:animate-popIn max-h-[92dvh] overflow-y-auto"
       >
+        <div aria-hidden className="sm:hidden mx-auto -mt-1 mb-4 h-1.5 w-12 rounded-full bg-ink/15" />
         <div className="flex items-center justify-between mb-5">
           <h2 className="font-extrabold text-xl text-ink">Vuestros perfiles 💕</h2>
           <button
             type="button"
             onClick={onClose}
             aria-label="Cerrar"
-            className="w-9 h-9 rounded-full bg-appbg text-ink/50 font-bold hover:bg-ink/10 transition-colors"
+            className="w-11 h-11 rounded-full bg-appbg text-ink/50 font-bold hover:bg-ink/10 transition-colors"
           >
             ✕
           </button>
@@ -173,7 +177,41 @@ export default function ProfileModal({ couple, onClose }) {
         >
           {saving ? "Guardando..." : "Guardar perfiles"}
         </button>
+
+        {whoAmI && (
+          <button
+            type="button"
+            onClick={() => setPinStep(myPinHash ? "verify" : "create")}
+            className="mt-3 w-full text-ink/45 hover:text-ink/70 text-sm font-bold py-1 transition-colors"
+          >
+            {myPinHash ? "🔐 Cambiar mi PIN" : "🔐 Crear mi PIN"}
+          </button>
+        )}
       </form>
+
+      {pinStep === "verify" && (
+        <PinModal
+          mode="verify"
+          personId={whoAmI}
+          personName={couple[whoAmI]}
+          expectedHash={myPinHash}
+          onClose={() => setPinStep(null)}
+          onSuccess={() => setPinStep("create")}
+        />
+      )}
+      {pinStep === "create" && (
+        <PinModal
+          mode="create"
+          personId={whoAmI}
+          personName={couple[whoAmI]}
+          onClose={() => setPinStep(null)}
+          onSuccess={async (hash) => {
+            await setDoc(COUPLE_DOC, { [`${whoAmI}Pin`]: hash }, { merge: true });
+            setPinStep(null);
+            toast("PIN actualizado 🔐");
+          }}
+        />
+      )}
     </div>
   );
 }
