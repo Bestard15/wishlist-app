@@ -33,7 +33,7 @@ export function SkeletonCard() {
   );
 }
 
-export default function MyWishlist({ myId }) {
+export default function MyWishlist({ myId, occasions, occasionsById }) {
   const [items, setItems] = useState(null);
   const [modal, setModal] = useState(null); // null | { item? }
   const [filter, setFilter] = useState("all");
@@ -58,7 +58,9 @@ export default function MyWishlist({ myId }) {
       price: form.price === "" ? null : Number(form.price),
       emoji: form.emoji,
       priority: form.priority,
-      category: form.category
+      category: form.category,
+      occasionId: form.occasionId || null,
+      image: form.image || ""
     };
     if (modal?.item) {
       await updateDoc(doc(db, "items", modal.item.id), payload);
@@ -80,9 +82,15 @@ export default function MyWishlist({ myId }) {
     toast("Deseo eliminado 🗑️");
   }
 
-  const visible = items
+  async function fulfillItem(id) {
+    await updateDoc(doc(db, "items", id), { fulfilledAt: serverTimestamp() });
+    toast("¡Al salón de la fama! 🏆");
+  }
+
+  const active = items?.filter((i) => !i.fulfilledAt) ?? null;
+  const visible = active
     ? sortItems(
-        items.filter((i) => (filter === "all" || i.category === filter) && matchesPrice(i, price)),
+        active.filter((i) => (filter === "all" || i.category === filter) && matchesPrice(i, price)),
         sort
       )
     : null;
@@ -97,7 +105,7 @@ export default function MyWishlist({ myId }) {
         </div>
       )}
 
-      {items?.length > 0 && (
+      {active?.length > 0 && (
         <>
           <ListControls
             filter={filter}
@@ -114,7 +122,7 @@ export default function MyWishlist({ myId }) {
         </>
       )}
 
-      {items?.length === 0 && (
+      {active?.length === 0 && (
         <div className="text-center py-14 animate-popIn">
           <div className="text-6xl mb-4 animate-wiggle inline-block">🎈</div>
           <p className="font-extrabold text-xl text-ink mb-1">Tu lista está vacía</p>
@@ -130,7 +138,7 @@ export default function MyWishlist({ myId }) {
         </div>
       )}
 
-      {items?.length > 0 && visible.length === 0 && (
+      {active?.length > 0 && visible.length === 0 && (
         <p className="text-center text-ink/55 font-semibold py-10 animate-popIn">
           Nada por aquí con este filtro 🤷
         </p>
@@ -143,15 +151,17 @@ export default function MyWishlist({ myId }) {
               key={item.id}
               item={item}
               mode="mine"
+              occasionsById={occasionsById}
               style={{ animationDelay: `${Math.min(i, 8) * 45}ms` }}
               onEdit={() => setModal({ item })}
               onDelete={() => removeItem(item.id)}
+              onFulfill={() => fulfillItem(item.id)}
             />
           ))}
         </div>
       )}
 
-      {items?.length > 0 &&
+      {active?.length > 0 &&
         createPortal(
           <button
             onClick={() => setModal({})}
@@ -164,7 +174,12 @@ export default function MyWishlist({ myId }) {
         )}
 
       {modal && (
-        <WishModal initial={modal.item} onSave={saveWish} onClose={() => setModal(null)} />
+        <WishModal
+          initial={modal.item}
+          occasions={occasions}
+          onSave={saveWish}
+          onClose={() => setModal(null)}
+        />
       )}
     </div>
   );

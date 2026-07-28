@@ -19,7 +19,7 @@ import WishModal from "./WishModal";
 
 const IDEAS = collection(db, "ideas");
 
-export default function SecretIdeas({ myId, partnerName }) {
+export default function SecretIdeas({ myId, partnerName, occasions, occasionsById }) {
   const [ideas, setIdeas] = useState(null);
   const [modal, setModal] = useState(null); // null | { item? }
 
@@ -44,7 +44,9 @@ export default function SecretIdeas({ myId, partnerName }) {
       price: form.price === "" ? null : Number(form.price),
       emoji: form.emoji,
       priority: form.priority,
-      category: form.category
+      category: form.category,
+      occasionId: form.occasionId || null,
+      image: form.image || ""
     };
     if (modal?.item) {
       await updateDoc(doc(db, "ideas", modal.item.id), payload);
@@ -110,6 +112,7 @@ export default function SecretIdeas({ myId, partnerName }) {
               key={idea.id}
               item={idea}
               mode="idea"
+              occasionsById={occasionsById}
               style={{ animationDelay: `${Math.min(i, 8) * 45}ms` }}
               onEdit={() => setModal({ item: idea })}
               onDelete={() => removeIdea(idea.id)}
@@ -135,6 +138,7 @@ export default function SecretIdeas({ myId, partnerName }) {
         <WishModal
           kind="idea"
           initial={modal.item}
+          occasions={occasions}
           onSave={saveIdea}
           onClose={() => setModal(null)}
         />

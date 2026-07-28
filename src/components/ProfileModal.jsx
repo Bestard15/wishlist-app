@@ -33,7 +33,16 @@ async function fileToAvatar(file) {
   }
 }
 
+const INFO_FIELDS = [
+  ["ropa", "👕 Talla de ropa", "M"],
+  ["calzado", "👟 Calzado", "42"],
+  ["anillo", "💍 Anillo", "12"],
+  ["gustos", "🎨 Colores y estilos favoritos", "Azul marino, nada de logos gigantes"],
+  ["vetado", "🚫 Ni se te ocurra regalarme...", "Calcetines de oficina, tazas"]
+];
+
 function ProfileEditor({ personId, profile, onChange }) {
+  const [showInfo, setShowInfo] = useState(false);
   async function handleFile(e) {
     const file = e.target.files?.[0];
     e.target.value = "";
@@ -95,14 +104,40 @@ function ProfileEditor({ personId, profile, onChange }) {
           </button>
         )}
       </div>
+
+      <button
+        type="button"
+        onClick={() => setShowInfo(!showInfo)}
+        className="mt-3 w-full bg-white hover:bg-sky/30 text-ink/70 text-sm font-bold rounded-bubble py-2.5 transition-colors flex justify-center items-center gap-1.5"
+      >
+        📏 Tallas y gustos
+        <span className={`transition-transform ${showInfo ? "rotate-180" : ""}`}>▾</span>
+      </button>
+      {showInfo && (
+        <div className="mt-3 flex flex-col gap-2.5 animate-fadeIn">
+          {INFO_FIELDS.map(([key, label, placeholder]) => (
+            <div key={key}>
+              <label className="block text-xs font-bold text-ink/55 mb-1">{label}</label>
+              <input
+                className="w-full rounded-bubble bg-white border-2 border-transparent px-4 py-2.5 text-base font-semibold focus:outline-none focus:border-secondary transition-colors"
+                placeholder={placeholder}
+                value={profile.info[key] || ""}
+                onChange={(e) =>
+                  onChange({ ...profile, info: { ...profile.info, [key]: e.target.value } })
+                }
+              />
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
 export default function ProfileModal({ couple, whoAmI, onClose }) {
   const [profiles, setProfiles] = useState({
-    p1: { name: couple.p1, avatar: couple.p1Avatar || "" },
-    p2: { name: couple.p2, avatar: couple.p2Avatar || "" }
+    p1: { name: couple.p1, avatar: couple.p1Avatar || "", info: couple.p1Info || {} },
+    p2: { name: couple.p2, avatar: couple.p2Avatar || "", info: couple.p2Info || {} }
   });
   const [saving, setSaving] = useState(false);
   const [pinStep, setPinStep] = useState(null); // null | "verify" | "create"
@@ -126,7 +161,9 @@ export default function ProfileModal({ couple, whoAmI, onClose }) {
         p1: profiles.p1.name.trim(),
         p2: profiles.p2.name.trim(),
         p1Avatar: profiles.p1.avatar,
-        p2Avatar: profiles.p2.avatar
+        p2Avatar: profiles.p2.avatar,
+        p1Info: profiles.p1.info,
+        p2Info: profiles.p2.info
       },
       { merge: true }
     );

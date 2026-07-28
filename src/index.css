@@ -5,6 +5,7 @@
 html {
   scroll-behavior: smooth;
   -webkit-tap-highlight-color: transparent;
+  color-scheme: light;
 }
 
 body {
@@ -27,6 +28,153 @@ body {
 :is(button, a, [role="button"]):focus-visible {
   outline: 3px solid #4ecdc4;
   outline-offset: 2px;
+}
+
+/* Modo oscuro automático: remapea las utilidades de la paleta clara.
+   (Hack asumido: más simple y coherente que sembrar dark: en 15 componentes) */
+@media (prefers-color-scheme: dark) {
+  html {
+    color-scheme: dark;
+  }
+  body {
+    background-color: #141920;
+  }
+  .bg-white {
+    background-color: #232b35;
+  }
+  .bg-white\/90,
+  .bg-white\/85,
+  .bg-white\/80,
+  .bg-white\/70 {
+    background-color: rgba(35, 43, 53, 0.92);
+  }
+  .hover\:bg-white:hover {
+    background-color: #2a333f;
+  }
+  .bg-appbg,
+  .bg-appbg\/70 {
+    background-color: #1a212a;
+  }
+  .focus\:bg-white:focus {
+    background-color: #232b35;
+  }
+  .text-ink {
+    color: #e9edf3;
+  }
+  .text-ink\/80 {
+    color: rgba(233, 237, 243, 0.85);
+  }
+  .text-ink\/70,
+  .text-ink\/65 {
+    color: rgba(233, 237, 243, 0.75);
+  }
+  .text-ink\/60,
+  .text-ink\/55 {
+    color: rgba(233, 237, 243, 0.65);
+  }
+  .text-ink\/50,
+  .text-ink\/45 {
+    color: rgba(233, 237, 243, 0.55);
+  }
+  .text-ink\/40,
+  .text-ink\/35 {
+    color: rgba(233, 237, 243, 0.45);
+  }
+  .hover\:text-ink:hover {
+    color: #ffffff;
+  }
+  .hover\:text-ink\/80:hover,
+  .hover\:text-ink\/70:hover,
+  .hover\:text-ink\/60:hover {
+    color: rgba(233, 237, 243, 0.9);
+  }
+  .border-white {
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+  .ring-ink\/10 {
+    --tw-ring-color: rgba(233, 237, 243, 0.18);
+  }
+  .bg-ink,
+  .bg-ink\/90 {
+    background-color: #37414d;
+  }
+  .bg-ink\/40 {
+    background-color: rgba(0, 0, 0, 0.55);
+  }
+  .bg-ink\/15 {
+    background-color: rgba(233, 237, 243, 0.2);
+  }
+  .hover\:bg-ink\/10:hover {
+    background-color: rgba(233, 237, 243, 0.12);
+  }
+  /* Tintas pastel: mismo matiz, menos alfa para no deslumbrar sobre oscuro */
+  .bg-banana\/60,
+  .bg-banana\/50,
+  .bg-banana\/40 {
+    background-color: rgba(255, 230, 109, 0.22);
+  }
+  .hover\:bg-banana\/80:hover,
+  .hover\:bg-banana\/50:hover {
+    background-color: rgba(255, 230, 109, 0.32);
+  }
+  .bg-peach\/60,
+  .bg-peach\/40 {
+    background-color: rgba(255, 211, 182, 0.2);
+  }
+  .hover\:bg-peach\/70:hover,
+  .hover\:bg-peach\/60:hover,
+  .hover\:bg-peach\/50:hover,
+  .hover\:bg-peach\/40:hover {
+    background-color: rgba(255, 211, 182, 0.3);
+  }
+  .bg-sky\/60,
+  .bg-sky\/50,
+  .bg-sky\/40 {
+    background-color: rgba(120, 190, 220, 0.22);
+  }
+  .hover\:bg-sky\/80:hover,
+  .hover\:bg-sky\/70:hover,
+  .hover\:bg-sky\/40:hover,
+  .hover\:bg-sky\/30:hover {
+    background-color: rgba(120, 190, 220, 0.3);
+  }
+  .bg-peach\/50 {
+    background-color: rgba(255, 211, 182, 0.22);
+  }
+  .bg-success\/50,
+  .bg-success\/40 {
+    background-color: rgba(126, 200, 160, 0.24);
+  }
+  .hover\:bg-success\/60:hover {
+    background-color: rgba(126, 200, 160, 0.32);
+  }
+  .bg-secondary\/25,
+  .bg-secondary\/15 {
+    background-color: rgba(78, 205, 196, 0.2);
+  }
+  .bg-primary\/15 {
+    background-color: rgba(255, 107, 107, 0.2);
+  }
+  /* Blobs del fondo, muy atenuados */
+  .pointer-events-none .bg-peach\/60,
+  .pointer-events-none .bg-sky\/60,
+  .pointer-events-none .bg-banana\/40 {
+    background-color: rgba(255, 170, 140, 0.07);
+  }
+  .shimmer {
+    background: linear-gradient(100deg, #232b35 40%, #2c3642 50%, #232b35 60%);
+    background-size: 200% 100%;
+  }
+  .shadow-card {
+    --tw-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
+    box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000),
+      var(--tw-shadow);
+  }
+  .shadow-soft {
+    --tw-shadow: 0 4px 0 rgba(0, 0, 0, 0.4);
+    box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000),
+      var(--tw-shadow);
+  }
 }
 
 /* Accesibilidad: sin animaciones para quien las desactiva en su sistema */

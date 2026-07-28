@@ -7,9 +7,11 @@ import PartnerWishlist from "./components/PartnerWishlist";
 import SecretIdeas from "./components/SecretIdeas";
 import ProfileModal from "./components/ProfileModal";
 import PinModal from "./components/PinModal";
+import OccasionsModal from "./components/OccasionsModal";
+import HistoryModal from "./components/HistoryModal";
 import Avatar from "./components/Avatar";
 import Toasts from "./components/Toasts";
-import { toast } from "./ui";
+import { nearestOccasion, toast } from "./ui";
 
 const COUPLE_DOC = doc(db, "meta", "couple");
 const TABS = ["mine", "partner", "ideas"];
@@ -20,6 +22,9 @@ export default function App() {
   const [editingProfiles, setEditingProfiles] = useState(false);
   const [creatingPin, setCreatingPin] = useState(false);
   const [partnerNews, setPartnerNews] = useState(0);
+  const [occasions, setOccasions] = useState([]);
+  const [showOccasions, setShowOccasions] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
   const notifiedIds = useRef(new Set());
 
   // Mantiene los perfiles frescos mientras hay sesión (avatares/nombres editados en otro dispositivo)
@@ -32,6 +37,14 @@ export default function App() {
         return;
       }
       setSession((s) => (s ? { ...s, couple: snap.data() } : s));
+    });
+  }, [!!session]);
+
+  // Ocasiones compartidas (cumples, aniversario, fiestas)
+  useEffect(() => {
+    if (!session) return;
+    return onSnapshot(collection(db, "occasions"), (snap) => {
+      setOccasions(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
     });
   }, [!!session]);
 
@@ -84,6 +97,8 @@ export default function App() {
   const partnerName = couple[partnerId];
   const myPinMissing = !couple[`${whoAmI}Pin`];
   const tabIndex = TABS.indexOf(tab);
+  const occasionsById = Object.fromEntries(occasions.map((o) => [o.id, o]));
+  const next = occasions.length ? nearestOccasion(occasions) : null;
 
   return (
     <div className="min-h-dvh font-rounded text-ink pb-28 sm:pb-16">
@@ -123,13 +138,34 @@ export default function App() {
           </button>
         </p>
 
-        {myPinMissing && (
+        <div className="flex justify-center gap-2 flex-wrap mt-3">
           <button
-            onClick={() => setCreatingPin(true)}
-            className="mt-3 inline-flex items-center gap-1.5 bg-banana/60 hover:bg-banana/80 text-ink text-xs font-extrabold rounded-full px-4 py-2 shadow-sm transition-colors animate-popIn"
+            onClick={() => setShowOccasions(true)}
+            className="inline-flex items-center gap-1.5 bg-white/70 hover:bg-white text-ink/70 text-xs font-extrabold rounded-full px-4 py-2 shadow-sm border border-white transition-colors"
           >
-            🔐 Protege tu perfil: crea tu PIN
+            🎂 Ocasiones
           </button>
+          <button
+            onClick={() => setShowHistory(true)}
+            className="inline-flex items-center gap-1.5 bg-white/70 hover:bg-white text-ink/70 text-xs font-extrabold rounded-full px-4 py-2 shadow-sm border border-white transition-colors"
+          >
+            🏆 Historial
+          </button>
+          {myPinMissing && (
+            <button
+              onClick={() => setCreatingPin(true)}
+              className="inline-flex items-center gap-1.5 bg-banana/60 hover:bg-banana/80 text-ink text-xs font-extrabold rounded-full px-4 py-2 shadow-sm transition-colors animate-popIn"
+            >
+              🔐 Protege tu perfil: crea tu PIN
+            </button>
+          )}
+        </div>
+
+        {next && (
+          <p className="mt-2.5 text-xs font-extrabold text-ink/55 animate-popIn">
+            {next.emoji} {next.name}{" "}
+            {next.days === 0 ? "— ¡es HOY! 🎉" : `en ${next.days} ${next.days === 1 ? "día" : "días"}`}
+          </p>
         )}
       </header>
 
@@ -173,11 +209,26 @@ export default function App() {
       </nav>
 
       <main key={tab} className="px-4 animate-fadeSlide">
-        {tab === "mine" && <MyWishlist myId={whoAmI} />}
-        {tab === "partner" && (
-          <PartnerWishlist partnerId={partnerId} partnerName={partnerName} />
+        {tab === "mine" && (
+          <MyWishlist myId={whoAmI} occasions={occasions} occasionsById={occasionsById} />
         )}
-        {tab === "ideas" && <SecretIdeas myId={whoAmI} partnerName={partnerName} />}
+        {tab === "partner" && (
+          <PartnerWishlist
+            partnerId={partnerId}
+            partnerName={partnerName}
+            occasions={occasions}
+            occasionsById={occasionsById}
+            partnerInfo={couple[`${partnerId}Info`]}
+          />
+        )}
+        {tab === "ideas" && (
+          <SecretIdeas
+            myId={whoAmI}
+            partnerName={partnerName}
+            occasions={occasions}
+            occasionsById={occasionsById}
+          />
+        )}
       </main>
 
       {editingProfiles && (
@@ -187,6 +238,12 @@ export default function App() {
           onClose={() => setEditingProfiles(false)}
         />
       )}
+
+      {showOccasions && (
+        <OccasionsModal occasions={occasions} onClose={() => setShowOccasions(false)} />
+      )}
+
+      {showHistory && <HistoryModal couple={couple} onClose={() => setShowHistory(false)} />}
 
       {creatingPin && (
         <PinModal

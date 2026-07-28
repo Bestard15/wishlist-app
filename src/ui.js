@@ -43,6 +43,31 @@ export function fmtPrice(n) {
   return n.toLocaleString("es-ES", { maximumFractionDigits: 2 });
 }
 
+export function nextOccurrence(dateStr, yearly) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const [y, m, d] = dateStr.split("-").map(Number);
+  let target = new Date(y, m - 1, d);
+  if (yearly) {
+    target = new Date(today.getFullYear(), m - 1, d);
+    if (target < today) target = new Date(today.getFullYear() + 1, m - 1, d);
+  }
+  return target;
+}
+
+export function daysUntil(date) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return Math.round((date - today) / 86400000);
+}
+
+export function nearestOccasion(occasions) {
+  return occasions
+    .map((o) => ({ ...o, days: daysUntil(nextOccurrence(o.date, o.yearly)) }))
+    .filter((o) => o.days >= 0)
+    .sort((a, b) => a.days - b.days)[0];
+}
+
 export function hostnameOf(url) {
   try {
     return new URL(url).hostname.replace(/^www\./, "");

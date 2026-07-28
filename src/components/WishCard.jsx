@@ -1,11 +1,27 @@
 import { useState } from "react";
 import { fmtPrice, hostnameOf } from "../ui";
 
-export default function WishCard({ item, mode, onEdit, onDelete, onToggleReserved, onToggleDone, style }) {
+export default function WishCard({
+  item,
+  mode,
+  onEdit,
+  onDelete,
+  onToggleReserved,
+  onToggleDone,
+  onFulfill,
+  onSaveReservedNote,
+  occasionsById,
+  style
+}) {
   const [confirming, setConfirming] = useState(false);
+  const [imgFailed, setImgFailed] = useState(false);
+  const [editingNote, setEditingNote] = useState(false);
+  const [noteDraft, setNoteDraft] = useState(item.reservedNote || "");
   const reserved = mode === "partner" && item.reserved;
   const done = mode === "idea" && item.done;
   const muted = reserved || done;
+  const occasion = item.occasionId && occasionsById ? occasionsById[item.occasionId] : null;
+  const showImage = item.image && !imgFailed;
 
   return (
     <div
@@ -26,19 +42,28 @@ export default function WishCard({ item, mode, onEdit, onDelete, onToggleReserve
       )}
 
       <div className="flex items-start gap-4">
-        <div
-          className={`w-12 h-12 shrink-0 rounded-2xl flex items-center justify-center text-2xl ${
-            muted
-              ? "bg-white/70"
-              : item.category === "need"
-                ? "bg-sky/40"
-                : item.category === "whim"
-                  ? "bg-peach/40"
-                  : "bg-appbg"
-          }`}
-        >
-          {item.emoji || "🎁"}
-        </div>
+        {showImage ? (
+          <img
+            src={item.image}
+            alt=""
+            onError={() => setImgFailed(true)}
+            className={`w-14 h-14 shrink-0 rounded-2xl object-cover ${muted ? "opacity-60" : ""}`}
+          />
+        ) : (
+          <div
+            className={`w-12 h-12 shrink-0 rounded-2xl flex items-center justify-center text-2xl ${
+              muted
+                ? "bg-white/70"
+                : item.category === "need"
+                  ? "bg-sky/40"
+                  : item.category === "whim"
+                    ? "bg-peach/40"
+                    : "bg-appbg"
+            }`}
+          >
+            {item.emoji || "🎁"}
+          </div>
+        )}
 
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
@@ -54,8 +79,13 @@ export default function WishCard({ item, mode, onEdit, onDelete, onToggleReserve
 
           {item.note && <p className="text-sm text-ink/65 line-clamp-2 mt-0.5">{item.note}</p>}
 
-          {(item.price != null || item.url || item.category) && (
+          {(item.price != null || item.url || item.category || occasion) && (
             <div className="flex flex-wrap gap-2 mt-2.5">
+              {occasion && (
+                <span className="bg-banana/50 text-ink text-xs font-extrabold rounded-full px-2.5 py-1">
+                  {occasion.emoji} {occasion.name}
+                </span>
+              )}
               {item.category && (
                 <span
                   title={item.category === "need" ? "Necesidad" : "Capricho"}
@@ -83,10 +113,59 @@ export default function WishCard({ item, mode, onEdit, onDelete, onToggleReserve
               )}
             </div>
           )}
+
+          {reserved && !editingNote && (
+            <button
+              onClick={() => {
+                setNoteDraft(item.reservedNote || "");
+                setEditingNote(true);
+              }}
+              className="mt-2.5 text-xs font-bold text-ink/60 bg-white/70 hover:bg-white rounded-full px-3 py-1.5 transition-colors max-w-full truncate"
+            >
+              🗒️ {item.reservedNote ? item.reservedNote : "Nota privada..."}
+            </button>
+          )}
+          {reserved && editingNote && (
+            <div className="mt-2.5 flex gap-2">
+              <input
+                autoFocus
+                className="flex-1 min-w-0 rounded-bubble bg-white border-2 border-transparent px-3 py-2 text-sm focus:outline-none focus:border-secondary transition-colors"
+                placeholder="Comprado, escondido en..."
+                value={noteDraft}
+                maxLength={120}
+                onChange={(e) => setNoteDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    onSaveReservedNote(noteDraft.trim());
+                    setEditingNote(false);
+                  }
+                }}
+              />
+              <button
+                onClick={() => {
+                  onSaveReservedNote(noteDraft.trim());
+                  setEditingNote(false);
+                }}
+                className="shrink-0 bg-secondary text-white text-xs font-extrabold rounded-full px-3.5 py-2"
+              >
+                OK
+              </button>
+            </div>
+          )}
         </div>
 
         {(mode === "mine" || mode === "idea") && !confirming && (
           <div className="flex gap-1.5 shrink-0">
+            {mode === "mine" && (
+              <button
+                onClick={onFulfill}
+                title="¡Me lo han regalado!"
+                aria-label="Marcar como recibido"
+                className="w-11 h-11 rounded-full bg-appbg hover:bg-success/60 transition-colors"
+              >
+                🎉
+              </button>
+            )}
             {mode === "idea" && (
               <button
                 onClick={onToggleDone}

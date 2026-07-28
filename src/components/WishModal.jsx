@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { WISH_EMOJIS } from "../ui";
+import { normalizeUrl, WISH_EMOJIS } from "../ui";
 
-export default function WishModal({ initial, onSave, onClose, kind = "wish" }) {
+export default function WishModal({ initial, onSave, onClose, kind = "wish", occasions }) {
   const [form, setForm] = useState({
     title: initial?.title || "",
     url: initial?.url || "",
@@ -10,10 +10,33 @@ export default function WishModal({ initial, onSave, onClose, kind = "wish" }) {
     price: initial?.price ?? "",
     emoji: initial?.emoji || "🎁",
     priority: initial?.priority ?? 2,
-    category: initial?.category || "whim"
+    category: initial?.category || "whim",
+    occasionId: initial?.occasionId || "",
+    image: initial?.image || ""
   });
   const [saving, setSaving] = useState(false);
+  const [previewLoading, setPreviewLoading] = useState(false);
   const titleRef = useRef(null);
+
+  async function fetchPreview() {
+    const url = normalizeUrl(form.url);
+    if (!url || form.image || previewLoading) return;
+    setPreviewLoading(true);
+    try {
+      const r = await fetch(`/api/preview?url=${encodeURIComponent(url)}`);
+      if (r.ok) {
+        const data = await r.json();
+        setForm((f) => ({
+          ...f,
+          image: data.image || f.image,
+          title: f.title.trim() ? f.title : data.title || f.title
+        }));
+      }
+    } catch {
+      // En dev no existe /api; en prod, si la tienda bloquea bots, la tarjeta se queda con su emoji
+    }
+    setPreviewLoading(false);
+  }
 
   useEffect(() => {
     titleRef.current?.focus();
@@ -148,6 +171,7 @@ export default function WishModal({ initial, onSave, onClose, kind = "wish" }) {
               placeholder="amazon.es/..."
               value={form.url}
               onChange={(e) => setForm({ ...form, url: e.target.value })}
+              onBlur={fetchPreview}
             />
           </div>
           <div>
@@ -166,6 +190,69 @@ export default function WishModal({ initial, onSave, onClose, kind = "wish" }) {
             />
           </div>
         </div>
+
+        {(previewLoading || form.image) && (
+          <div className="flex items-center gap-3 mb-4 bg-appbg/70 rounded-bubble p-3">
+            {previewLoading ? (
+              <>
+                <div className="w-12 h-12 rounded-xl shimmer shrink-0" />
+                <p className="text-sm font-bold text-ink/55">Buscando foto del producto...</p>
+              </>
+            ) : (
+              <>
+                <img
+                  src={form.image}
+                  alt=""
+                  className="w-12 h-12 rounded-xl object-cover shrink-0"
+                  onError={() => setForm((f) => ({ ...f, image: "" }))}
+                />
+                <p className="flex-1 text-sm font-bold text-ink/55">Foto del enlace 🖼️</p>
+                <button
+                  type="button"
+                  onClick={() => setForm({ ...form, image: "" })}
+                  className="text-xs font-extrabold text-ink/50 bg-white rounded-full px-3 py-2 hover:bg-peach/40 transition-colors"
+                >
+                  Quitar
+                </button>
+              </>
+            )}
+          </div>
+        )}
+
+        {occasions?.length > 0 && (
+          <>
+            <label className="block text-xs font-bold uppercase tracking-wide text-ink/55 mb-1.5">
+              ¿Para qué ocasión?
+            </label>
+            <div className="flex flex-wrap gap-2 mb-4">
+              <button
+                type="button"
+                onClick={() => setForm({ ...form, occasionId: "" })}
+                className={`rounded-full px-3.5 py-2 text-xs font-extrabold transition-all ${
+                  form.occasionId === ""
+                    ? "bg-ink text-white scale-105"
+                    : "bg-appbg text-ink/55 hover:bg-sky/40"
+                }`}
+              >
+                Sin ocasión
+              </button>
+              {occasions.map((o) => (
+                <button
+                  key={o.id}
+                  type="button"
+                  onClick={() => setForm({ ...form, occasionId: o.id })}
+                  className={`rounded-full px-3.5 py-2 text-xs font-extrabold transition-all ${
+                    form.occasionId === o.id
+                      ? "bg-secondary/25 ring-2 ring-secondary text-ink scale-105"
+                      : "bg-appbg text-ink/55 hover:bg-sky/40"
+                  }`}
+                >
+                  {o.emoji} {o.name}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
 
         <label className="block text-xs font-bold uppercase tracking-wide text-ink/55 mb-1.5">
           Nota <span className="normal-case font-semibold">(talla, color, indirecta...)</span>
