@@ -8,7 +8,8 @@ export default function WishModal({ initial, onSave, onClose }) {
     note: initial?.note || "",
     price: initial?.price ?? "",
     emoji: initial?.emoji || "🎁",
-    priority: initial?.priority ?? 2
+    priority: initial?.priority ?? 2,
+    category: initial?.category || "whim"
   });
   const [saving, setSaving] = useState(false);
   const titleRef = useRef(null);
@@ -81,6 +82,29 @@ export default function WishModal({ initial, onSave, onClose }) {
               }`}
             >
               {em}
+            </button>
+          ))}
+        </div>
+
+        <label className="block text-xs font-bold uppercase tracking-wide text-ink/40 mb-1.5">
+          ¿Necesidad o capricho?
+        </label>
+        <div className="flex gap-2 mb-4">
+          {[
+            { key: "need", label: "🧦 Necesidad" },
+            { key: "whim", label: "🦄 Capricho" }
+          ].map((c) => (
+            <button
+              key={c.key}
+              type="button"
+              onClick={() => setForm({ ...form, category: c.key })}
+              className={`flex-1 rounded-bubble py-2.5 text-sm font-bold transition-all ${
+                form.category === c.key
+                  ? "bg-secondary/15 ring-2 ring-secondary text-ink scale-[1.03]"
+                  : "bg-appbg text-ink/50 hover:bg-sky/40"
+              }`}
+            >
+              {c.label}
             </button>
           ))}
         </div>

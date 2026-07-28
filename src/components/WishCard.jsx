@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { hostnameOf } from "../ui";
+import { fmtPrice, hostnameOf } from "../ui";
 
 export default function WishCard({ item, mode, onEdit, onDelete, onToggleReserved }) {
   const [confirming, setConfirming] = useState(false);
@@ -40,11 +40,21 @@ export default function WishCard({ item, mode, onEdit, onDelete, onToggleReserve
 
           {item.note && <p className="text-sm text-ink/55 line-clamp-2 mt-0.5">{item.note}</p>}
 
-          {(item.price != null || item.url) && (
+          {(item.price != null || item.url || item.category) && (
             <div className="flex flex-wrap gap-2 mt-2.5">
+              {item.category && (
+                <span
+                  title={item.category === "need" ? "Necesidad" : "Capricho"}
+                  className={`text-xs font-extrabold rounded-full px-2.5 py-1 ${
+                    item.category === "need" ? "bg-sky/60" : "bg-peach/60"
+                  }`}
+                >
+                  {item.category === "need" ? "🧦" : "🦄"}
+                </span>
+              )}
               {item.price != null && (
                 <span className="bg-banana/60 text-ink text-xs font-extrabold rounded-full px-3 py-1">
-                  {item.price} €
+                  {fmtPrice(item.price)} €
                 </span>
               )}
               {item.url && (

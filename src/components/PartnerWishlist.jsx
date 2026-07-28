@@ -8,13 +8,15 @@ import {
   where
 } from "firebase/firestore";
 import { db } from "../firebase";
-import { burstHearts, toast } from "../ui";
+import { burstHearts, fmtPrice, toast } from "../ui";
+import FilterPills from "./FilterPills";
 import WishCard from "./WishCard";
 
 const ITEMS = collection(db, "items");
 
 export default function PartnerWishlist({ partnerId, partnerName }) {
   const [items, setItems] = useState(null);
+  const [filter, setFilter] = useState("all");
 
   useEffect(() => {
     const q = query(ITEMS, where("owner", "==", partnerId));
@@ -41,6 +43,8 @@ export default function PartnerWishlist({ partnerId, partnerName }) {
   }
 
   const reservedCount = items?.filter((i) => i.reserved).length ?? 0;
+  const visible = items?.filter((i) => filter === "all" || i.category === filter) ?? null;
+  const totalPrice = visible?.reduce((sum, i) => sum + (i.price || 0), 0) ?? 0;
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -64,11 +68,16 @@ export default function PartnerWishlist({ partnerId, partnerName }) {
 
       {items?.length > 0 && (
         <>
+          <FilterPills value={filter} onChange={setFilter} />
+
           <div className="bg-white/80 backdrop-blur rounded-bubble shadow-card px-5 py-4 mb-4 animate-popIn">
-            <div className="flex items-center justify-between text-sm font-bold text-ink/70 mb-2">
+            <div className="flex items-center justify-between gap-2 text-sm font-bold text-ink/70 mb-2">
               <span>
-                {items.length} {items.length === 1 ? "deseo" : "deseos"} 🎀
+                {visible.length} {visible.length === 1 ? "deseo" : "deseos"} 🎀
               </span>
+              {totalPrice > 0 && (
+                <span className="text-ink/45 text-xs">~{fmtPrice(totalPrice)} €</span>
+              )}
               <span>
                 {reservedCount} {reservedCount === 1 ? "pillado" : "pillados"} 🤫
               </span>
@@ -81,8 +90,14 @@ export default function PartnerWishlist({ partnerId, partnerName }) {
             </div>
           </div>
 
+          {visible.length === 0 && (
+            <p className="text-center text-ink/40 font-semibold py-10 animate-popIn">
+              Nada por aquí con este filtro 🤷
+            </p>
+          )}
+
           <div className="flex flex-col gap-3">
-            {items.map((item) => (
+            {visible.map((item) => (
               <WishCard
                 key={item.id}
                 item={item}

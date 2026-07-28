@@ -28,6 +28,10 @@ export function normalizeUrl(raw) {
   return /^https?:\/\//i.test(value) ? value : `https://${value}`;
 }
 
+export function fmtPrice(n) {
+  return n.toLocaleString("es-ES", { maximumFractionDigits: 2 });
+}
+
 export function hostnameOf(url) {
   try {
     return new URL(url).hostname.replace(/^www\./, "");

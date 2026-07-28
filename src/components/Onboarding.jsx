@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { doc, onSnapshot, setDoc } from "firebase/firestore";
 import { db } from "../firebase";
+import Avatar from "./Avatar";
 
 const COUPLE_DOC = doc(db, "meta", "couple");
 
@@ -118,13 +119,7 @@ export default function Onboarding({ onReady }) {
                 i === 0 ? "bg-peach/50 hover:bg-peach/70" : "bg-sky/50 hover:bg-sky/70"
               }`}
             >
-              <span
-                className={`w-11 h-11 rounded-full flex items-center justify-center text-white text-lg font-extrabold ${
-                  i === 0 ? "bg-primary" : "bg-secondary"
-                }`}
-              >
-                {couple[id].trim().charAt(0).toUpperCase()}
-              </span>
+              <Avatar personId={id} name={couple[id]} avatar={couple[`${id}Avatar`]} size="md" />
               <span className="font-extrabold text-ink flex-1 text-left truncate">
                 {couple[id]}
               </span>

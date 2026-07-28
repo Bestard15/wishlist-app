@@ -1,12 +1,32 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { doc, onSnapshot } from "firebase/firestore";
+import { db } from "./firebase";
 import Onboarding from "./components/Onboarding";
 import MyWishlist from "./components/MyWishlist";
 import PartnerWishlist from "./components/PartnerWishlist";
+import ProfileModal from "./components/ProfileModal";
+import Avatar from "./components/Avatar";
 import Toasts from "./components/Toasts";
+
+const COUPLE_DOC = doc(db, "meta", "couple");
 
 export default function App() {
   const [session, setSession] = useState(null);
   const [tab, setTab] = useState("mine");
+  const [editingProfiles, setEditingProfiles] = useState(false);
+
+  // Mantiene los perfiles frescos mientras hay sesión (avatares/nombres editados en otro dispositivo)
+  useEffect(() => {
+    if (!session) return;
+    return onSnapshot(COUPLE_DOC, (snap) => {
+      if (!snap.exists()) {
+        localStorage.removeItem("whoAmI");
+        setSession(null);
+        return;
+      }
+      setSession((s) => (s ? { ...s, couple: snap.data() } : s));
+    });
+  }, [!!session]);
 
   if (!session) {
     return (
@@ -35,11 +55,17 @@ export default function App() {
       <Toasts />
 
       <header className="text-center pt-8 pb-5 px-4">
-        <div className="inline-flex items-center gap-2 bg-white/70 backdrop-blur border border-white rounded-full px-4 py-1.5 text-sm font-bold text-ink/60 shadow-sm animate-popIn">
-          <span className="truncate max-w-[7rem]">{couple.p1}</span>
+        <button
+          onClick={() => setEditingProfiles(true)}
+          title="Editar perfiles"
+          className="inline-flex items-center gap-2.5 bg-white/70 backdrop-blur border border-white rounded-full pl-2 pr-2 py-1.5 text-sm font-bold text-ink/60 shadow-sm animate-popIn hover:scale-105 hover:bg-white transition-all"
+        >
+          <Avatar personId="p1" name={couple.p1} avatar={couple.p1Avatar} size="sm" />
+          <span className="truncate max-w-[6.5rem]">{couple.p1}</span>
           <span className="animate-beat inline-block">💕</span>
-          <span className="truncate max-w-[7rem]">{couple.p2}</span>
-        </div>
+          <span className="truncate max-w-[6.5rem]">{couple.p2}</span>
+          <Avatar personId="p2" name={couple.p2} avatar={couple.p2Avatar} size="sm" />
+        </button>
         <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold">
           Wishlist <span className="text-primary">de Pareja</span>
         </h1>
@@ -91,6 +117,10 @@ export default function App() {
           <PartnerWishlist partnerId={partnerId} partnerName={partnerName} />
         )}
       </main>
+
+      {editingProfiles && (
+        <ProfileModal couple={couple} onClose={() => setEditingProfiles(false)} />
+      )}
     </div>
   );
 }

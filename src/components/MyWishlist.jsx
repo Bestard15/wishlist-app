@@ -11,7 +11,8 @@ import {
   where
 } from "firebase/firestore";
 import { db } from "../firebase";
-import { normalizeUrl, toast } from "../ui";
+import { fmtPrice, normalizeUrl, toast } from "../ui";
+import FilterPills from "./FilterPills";
 import WishCard from "./WishCard";
 import WishModal from "./WishModal";
 
@@ -34,6 +35,7 @@ function SkeletonCard() {
 export default function MyWishlist({ myId }) {
   const [items, setItems] = useState(null);
   const [modal, setModal] = useState(null); // null | { item? }
+  const [filter, setFilter] = useState("all");
 
   useEffect(() => {
     const q = query(ITEMS, where("owner", "==", myId));
@@ -52,7 +54,8 @@ export default function MyWishlist({ myId }) {
       note: form.note.trim(),
       price: form.price === "" ? null : Number(form.price),
       emoji: form.emoji,
-      priority: form.priority
+      priority: form.priority,
+      category: form.category
     };
     if (modal?.item) {
       await updateDoc(doc(db, "items", modal.item.id), payload);
@@ -74,6 +77,9 @@ export default function MyWishlist({ myId }) {
     toast("Deseo eliminado 🗑️");
   }
 
+  const visible = items?.filter((i) => filter === "all" || i.category === filter) ?? null;
+  const totalPrice = visible?.reduce((sum, i) => sum + (i.price || 0), 0) ?? 0;
+
   return (
     <div className="max-w-2xl mx-auto">
       {items === null && (
@@ -81,6 +87,16 @@ export default function MyWishlist({ myId }) {
           <SkeletonCard />
           <SkeletonCard />
         </div>
+      )}
+
+      {items?.length > 0 && (
+        <>
+          <FilterPills value={filter} onChange={setFilter} />
+          <p className="text-center text-xs font-bold text-ink/40 mb-4">
+            {visible.length} {visible.length === 1 ? "deseo" : "deseos"}
+            {totalPrice > 0 && <> · ~{fmtPrice(totalPrice)} €</>}
+          </p>
+        </>
       )}
 
       {items?.length === 0 && (
@@ -99,9 +115,15 @@ export default function MyWishlist({ myId }) {
         </div>
       )}
 
-      {items?.length > 0 && (
+      {items?.length > 0 && visible.length === 0 && (
+        <p className="text-center text-ink/40 font-semibold py-10 animate-popIn">
+          Nada por aquí con este filtro 🤷
+        </p>
+      )}
+
+      {visible?.length > 0 && (
         <div className="flex flex-col gap-3">
-          {items.map((item) => (
+          {visible.map((item) => (
             <WishCard
               key={item.id}
               item={item}
