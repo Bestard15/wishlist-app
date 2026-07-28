@@ -20,9 +20,6 @@ export default function App() {
   const [editingProfiles, setEditingProfiles] = useState(false);
   const [creatingPin, setCreatingPin] = useState(false);
   const [partnerNews, setPartnerNews] = useState(0);
-  const [notifPermission, setNotifPermission] = useState(
-    typeof Notification !== "undefined" ? Notification.permission : "unsupported"
-  );
   const notifiedIds = useRef(new Set());
 
   // Mantiene los perfiles frescos mientras hay sesión (avatares/nombres editados en otro dispositivo)
@@ -58,22 +55,7 @@ export default function App() {
       const unannounced = fresh.filter((it) => !notifiedIds.current.has(it.id));
       if (unannounced.length > 0) {
         unannounced.forEach((it) => notifiedIds.current.add(it.id));
-        const partnerName = session.couple[other];
-        toast(`¡${partnerName} ha añadido un deseo! 👀`);
-        if (
-          typeof Notification !== "undefined" &&
-          Notification.permission === "granted" &&
-          document.hidden
-        ) {
-          try {
-            new Notification("Wishlist de Pareja 💕", {
-              body: `${partnerName} ha pedido: ${unannounced.map((i) => i.title).join(", ")}`,
-              icon: "/icon.svg"
-            });
-          } catch {
-            // Algunos navegadores móviles no permiten Notification directa; el badge ya avisa
-          }
-        }
+        toast(`¡${session.couple[other]} ha añadido un deseo! 👀`);
       }
     });
   }, [session?.whoAmI]);
@@ -141,29 +123,14 @@ export default function App() {
           </button>
         </p>
 
-        <div className="flex justify-center gap-2 flex-wrap">
-          {myPinMissing && (
-            <button
-              onClick={() => setCreatingPin(true)}
-              className="mt-3 inline-flex items-center gap-1.5 bg-banana/60 hover:bg-banana/80 text-ink text-xs font-extrabold rounded-full px-4 py-2 shadow-sm transition-colors animate-popIn"
-            >
-              🔐 Protege tu perfil: crea tu PIN
-            </button>
-          )}
-          {notifPermission === "default" && (
-            <button
-              onClick={() =>
-                Notification.requestPermission().then((p) => {
-                  setNotifPermission(p);
-                  toast(p === "granted" ? "¡Avisos activados! 🔔" : "Vale, sin avisos 🤷");
-                })
-              }
-              className="mt-3 inline-flex items-center gap-1.5 bg-sky/60 hover:bg-sky/80 text-ink text-xs font-extrabold rounded-full px-4 py-2 shadow-sm transition-colors animate-popIn"
-            >
-              🔔 Activar avisos
-            </button>
-          )}
-        </div>
+        {myPinMissing && (
+          <button
+            onClick={() => setCreatingPin(true)}
+            className="mt-3 inline-flex items-center gap-1.5 bg-banana/60 hover:bg-banana/80 text-ink text-xs font-extrabold rounded-full px-4 py-2 shadow-sm transition-colors animate-popIn"
+          >
+            🔐 Protege tu perfil: crea tu PIN
+          </button>
+        )}
       </header>
 
       <nav className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] inset-x-4 z-40 sm:static sm:inset-x-auto sm:mx-auto sm:max-w-md sm:mb-8 sm:px-0">
