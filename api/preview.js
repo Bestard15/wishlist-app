@@ -80,10 +80,11 @@ export default async function handler(req, res) {
         image = "";
       }
     }
-    return res.status(200).json({
-      title: decodeEntities(title).slice(0, 150),
-      image: image.slice(0, 2000)
-    });
+    title = decodeEntities(title).slice(0, 150);
+    if (/access denied|forbidden|robot|captcha|blocked|are you a human|404|not found/i.test(title)) {
+      title = "";
+    }
+    return res.status(200).json({ title, image: image.slice(0, 2000) });
   } catch {
     return res.status(200).json({});
   }
