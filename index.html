@@ -7,8 +7,16 @@
       name="description"
       content="Vuestra lista de deseos compartida: pide, cotillea y reserva regalos sin arruinar la sorpresa."
     />
-    <meta name="theme-color" content="#F7F9FC" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#141920" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#F7F9FC" />
+    <script>
+      // Aplica el tema antes de pintar para evitar el destello claro
+      try {
+        var t = localStorage.getItem("theme");
+        if (t === "dark" || (t !== "light" && matchMedia("(prefers-color-scheme: dark)").matches)) {
+          document.documentElement.classList.add("dark");
+        }
+      } catch (e) {}
+    </script>
     <link rel="icon" href="/icon.svg" type="image/svg+xml" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <title>Wishlist de Pareja</title>

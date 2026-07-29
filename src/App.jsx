@@ -12,6 +12,7 @@ import HistoryModal from "./components/HistoryModal";
 import Avatar from "./components/Avatar";
 import Toasts from "./components/Toasts";
 import { nearestOccasion, toast } from "./ui";
+import { isDark, toggleTheme } from "./theme";
 
 const COUPLE_DOC = doc(db, "meta", "couple");
 const TABS = ["mine", "partner", "ideas"];
@@ -25,7 +26,14 @@ export default function App() {
   const [occasions, setOccasions] = useState([]);
   const [showOccasions, setShowOccasions] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [dark, setDark] = useState(isDark());
   const notifiedIds = useRef(new Set());
+
+  useEffect(() => {
+    const onTheme = (e) => setDark(e.detail.dark);
+    window.addEventListener("themechange", onTheme);
+    return () => window.removeEventListener("themechange", onTheme);
+  }, []);
 
   // Mantiene los perfiles frescos mientras hay sesión (avatares/nombres editados en otro dispositivo)
   useEffect(() => {
@@ -150,6 +158,13 @@ export default function App() {
             className="inline-flex items-center gap-1.5 bg-white/70 hover:bg-white text-ink/70 text-xs font-extrabold rounded-full px-4 py-2 shadow-sm border border-white transition-colors"
           >
             🏆 Historial
+          </button>
+          <button
+            onClick={toggleTheme}
+            title={dark ? "Cambiar a modo día" : "Cambiar a modo noche"}
+            className="inline-flex items-center gap-1.5 bg-white/70 hover:bg-white text-ink/70 text-xs font-extrabold rounded-full px-4 py-2 shadow-sm border border-white transition-colors"
+          >
+            {dark ? "☀️ Día" : "🌙 Noche"}
           </button>
           {myPinMissing && (
             <button
