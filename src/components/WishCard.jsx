@@ -16,6 +16,7 @@ export default function WishCard({
   const [confirming, setConfirming] = useState(false);
   const [imgFailed, setImgFailed] = useState(false);
   const [editingNote, setEditingNote] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const [noteDraft, setNoteDraft] = useState(item.reservedNote || "");
   const reserved = mode === "partner" && item.reserved;
   const done = mode === "idea" && item.done;
@@ -26,7 +27,11 @@ export default function WishCard({
   return (
     <div
       style={style}
-      className={`relative rounded-blob shadow-card p-5 animate-popIn transition-all hover:-translate-y-0.5 hover:shadow-float ${
+      onClick={(e) => {
+        if (e.target.closest("button, a, input")) return;
+        setExpanded((v) => !v);
+      }}
+      className={`relative rounded-blob shadow-card p-5 animate-popIn transition-all hover:-translate-y-0.5 hover:shadow-float cursor-pointer ${
         muted ? "bg-success/50 ring-2 ring-success" : "bg-white/90 backdrop-blur"
       }`}
     >
@@ -42,14 +47,14 @@ export default function WishCard({
       )}
 
       <div className="flex items-start gap-4">
-        {showImage ? (
+        {showImage && !expanded ? (
           <img
             src={item.image}
             alt=""
             onError={() => setImgFailed(true)}
             className={`w-14 h-14 shrink-0 rounded-2xl object-cover ${muted ? "opacity-60" : ""}`}
           />
-        ) : (
+        ) : showImage && expanded ? null : (
           <div
             className={`w-12 h-12 shrink-0 rounded-2xl flex items-center justify-center text-2xl ${
               muted
@@ -67,7 +72,11 @@ export default function WishCard({
 
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <p className={`font-bold text-ink truncate ${muted ? "line-through opacity-60" : ""}`}>
+            <p
+              className={`font-bold text-ink ${expanded ? "break-words" : "truncate"} ${
+                muted ? "line-through opacity-60" : ""
+              }`}
+            >
               {item.title}
             </p>
             {item.priority > 0 && (
@@ -75,9 +84,38 @@ export default function WishCard({
                 {"❤️".repeat(Math.min(item.priority, 3))}
               </span>
             )}
+            <button
+              onClick={() => setExpanded((v) => !v)}
+              aria-expanded={expanded}
+              aria-label={expanded ? "Contraer detalles" : "Ver detalles"}
+              className={`ml-auto shrink-0 w-7 h-7 rounded-full bg-appbg/80 text-ink/45 text-xs font-bold flex items-center justify-center transition-transform ${
+                expanded ? "rotate-180" : ""
+              }`}
+            >
+              ▾
+            </button>
           </div>
 
-          {item.note && <p className="text-sm text-ink/65 line-clamp-2 mt-0.5">{item.note}</p>}
+          {expanded && showImage && (
+            <img
+              src={item.image}
+              alt=""
+              onError={() => setImgFailed(true)}
+              className="w-full max-h-60 object-cover rounded-2xl mt-3 animate-fadeIn"
+            />
+          )}
+
+          {item.note && (
+            <p className={`text-sm text-ink/65 mt-0.5 ${expanded ? "mt-2" : "line-clamp-2"}`}>
+              {item.note}
+            </p>
+          )}
+
+          {expanded && item.createdAt?.toDate && (
+            <p className="text-xs text-ink/45 font-semibold mt-2 animate-fadeIn">
+              Apuntado el {item.createdAt.toDate().toLocaleDateString("es-ES")}
+            </p>
+          )}
 
           {(item.price != null || item.url || item.category || occasion) && (
             <div className="flex flex-wrap gap-2 mt-2.5">
