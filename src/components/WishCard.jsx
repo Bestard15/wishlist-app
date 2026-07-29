@@ -88,7 +88,7 @@ export default function WishCard({
               onClick={() => setExpanded((v) => !v)}
               aria-expanded={expanded}
               aria-label={expanded ? "Contraer detalles" : "Ver detalles"}
-              className={`ml-auto shrink-0 w-7 h-7 rounded-full bg-appbg/80 text-ink/45 text-xs font-bold flex items-center justify-center transition-transform ${
+              className={`ml-auto shrink-0 w-7 h-7 rounded-full bg-appbg text-ink/60 text-xs font-bold flex items-center justify-center transition-transform ${
                 expanded ? "rotate-180" : ""
               }`}
             >

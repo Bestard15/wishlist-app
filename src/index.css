@@ -52,6 +52,7 @@ body {
     background-color: #2a333f;
   }
   .bg-appbg,
+  .bg-appbg\/80,
   .bg-appbg\/70 {
     background-color: #1a212a;
   }
