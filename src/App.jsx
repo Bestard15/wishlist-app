@@ -118,7 +118,7 @@ export default function App() {
 
       <Toasts />
 
-      <header className="text-center pt-8 pb-5 px-4">
+      <header className="text-center pt-5 sm:pt-8 pb-4 sm:pb-5 px-4">
         <button
           onClick={() => setEditingProfiles(true)}
           title="Editar perfiles"
@@ -130,10 +130,10 @@ export default function App() {
           <span className="truncate max-w-[6.5rem]">{couple.p2}</span>
           <Avatar personId="p2" name={couple.p2} avatar={couple.p2Avatar} size="sm" />
         </button>
-        <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold">
+        <h1 className="mt-2.5 text-[26px] sm:text-4xl font-extrabold leading-tight">
           Wishlist <span className="text-primary">de Pareja</span>
         </h1>
-        <p className="text-ink/60 font-semibold mt-1">
+        <p className="text-ink/60 font-semibold text-sm sm:text-base mt-0.5">
           Hola, {myName} ✨{" "}
           <button
             className="text-ink/55 underline decoration-2 decoration-ink/25 hover:text-ink/80 transition-colors"
@@ -146,7 +146,7 @@ export default function App() {
           </button>
         </p>
 
-        <div className="flex justify-center gap-2 flex-wrap mt-3">
+        <div className="flex justify-center gap-2 flex-wrap mt-2.5">
           <button
             onClick={() => setShowOccasions(true)}
             className="inline-flex items-center gap-1.5 bg-white/70 hover:bg-white text-ink/70 text-xs font-extrabold rounded-full px-4 py-2 shadow-sm border border-white transition-colors"
@@ -177,7 +177,7 @@ export default function App() {
         </div>
 
         {next && (
-          <p className="mt-2.5 text-xs font-extrabold text-ink/55 animate-popIn">
+          <p className="mt-2 text-xs font-extrabold text-ink/55 animate-popIn">
             {next.emoji} {next.name}{" "}
             {next.days === 0 ? "— ¡es HOY! 🎉" : `en ${next.days} ${next.days === 1 ? "día" : "días"}`}
           </p>

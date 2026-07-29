@@ -45,8 +45,8 @@ function Pill({ active, onClick, children }) {
   return (
     <button
       onClick={onClick}
-      className={`rounded-full px-4 py-2 text-[13px] min-h-[40px] font-extrabold transition-all active:scale-95 ${
-        active ? "bg-ink text-white shadow-soft scale-105" : "bg-white/80 text-ink/60 hover:bg-white"
+      className={`shrink-0 rounded-full px-3.5 py-2 text-[13px] min-h-[40px] font-extrabold transition-all active:scale-95 ${
+        active ? "bg-ink text-white shadow-soft" : "bg-white/80 text-ink/60 hover:bg-white"
       }`}
     >
       {children}
@@ -54,20 +54,23 @@ function Pill({ active, onClick, children }) {
   );
 }
 
+// Tiras deslizables en móvil (evita que los filtros ocupen 3 filas), centradas en pantallas grandes
+const ROW = "flex gap-2 overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap sm:justify-center";
+
 export default function ListControls({ filter, onFilter, price, onPrice, sort, onSort }) {
   const sortIndex = SORTS.findIndex((s) => s.key === sort);
   const current = SORTS[sortIndex] || SORTS[0];
 
   return (
-    <div className="mb-4">
-      <div className="flex justify-center gap-2 mb-2 flex-wrap">
+    <div className="mb-4 flex flex-col gap-2">
+      <div className={ROW}>
         {CATEGORIES.map((opt) => (
           <Pill key={opt.key} active={filter === opt.key} onClick={() => onFilter(opt.key)}>
             {opt.label}
           </Pill>
         ))}
       </div>
-      <div className="flex justify-center items-center gap-2 flex-wrap">
+      <div className={ROW}>
         {PRICES.map((opt) => (
           <Pill key={opt.key} active={price === opt.key} onClick={() => onPrice(opt.key)}>
             {opt.label}
@@ -76,7 +79,7 @@ export default function ListControls({ filter, onFilter, price, onPrice, sort, o
         <button
           onClick={() => onSort(SORTS[(sortIndex + 1) % SORTS.length].key)}
           title="Cambiar orden"
-          className="rounded-full px-4 py-2 text-[13px] min-h-[40px] font-extrabold bg-secondary/15 text-ink ring-2 ring-secondary/40 hover:ring-secondary transition-all active:scale-95"
+          className="shrink-0 rounded-full px-3.5 py-2 text-[13px] min-h-[40px] font-extrabold bg-secondary/15 text-ink ring-2 ring-secondary/40 hover:ring-secondary transition-all active:scale-95"
         >
           {current.label}
         </button>
